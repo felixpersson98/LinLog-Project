@@ -32,8 +32,8 @@ head(newplasma.pred1)
   plot.data1 <- 
     ggplot(data = newplasma.pred1, aes(x = age, y = betaplasma)) + 
     geom_point(size = 2) +
-    xlab("Ålder") +
-    ylab("Betakaroten") +
+    xlab("Ålder (år)") +
+    ylab("Betakaroten (ng/ml)") +
     labs(title = "Ålder och betakaroten") +
     theme(text = element_text(size = 14))
 )

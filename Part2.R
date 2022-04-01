@@ -17,3 +17,12 @@ plasma$bmicat <- factor(plasma$bmicat,
                      levels = c(1, 2, 3, 4),
                      labels = c("Underweight", "Normal", "Overweight", "Obese"))
 
+table(plasma$sex)
+table(plasma$smokstat)
+table(plasma$bmicat)
+
+
+
+plasma$region <- relevel(plasma$region, "all")
+plasma.model3 <- lm(log(Pb) ~ I(year - 1975) + region, data = plasma)
+(plasma.model3.sum <- summary(plasma.model3))
