@@ -23,6 +23,7 @@ newplasma.pred1 <-
         conf = predict(newplasma.model1, interval = "confidence"),
         pred = predict(newplasma.model1, interval = "prediction"))
 head(newplasma.pred1)
+
 # get rid of the extra fits
 newplasma.pred1$conf.fit <- newplasma.pred1$pred.fit <- NULL
 head(newplasma.pred1)
@@ -209,9 +210,14 @@ exp(newplasma.model2$coefficients)
 
 (newplasma.x0 <- data.frame(age = c(25)))
 (newplasma.y0.pred2 <- cbind(newplasma.x0,
-                                 fit = exp(predict(newplasma.model2, newplasma.x0)),
-                                 conf = exp(predict(newplasma.model2, newplasma.x0, interval = "confidence")),
-                                 pred = exp(predict(newplasma.model2, newplasma.x0, interval = "prediction"))))
+                                 fit = exp(predict(newplasma.model2, 
+                                                   newplasma.x0)),
+                                 conf = exp(predict(newplasma.model2, 
+                                                    newplasma.x0, 
+                                                    interval = "confidence")),
+                                 pred = exp(predict(newplasma.model2,
+                                                    newplasma.x0, 
+                                                    interval = "prediction"))))
 (interval_width_25 <- newplasma.y0.pred2$conf.upr - newplasma.y0.pred2$conf.lwr)
 
 # Repeat for x0 = 26, 75 and 76
@@ -219,21 +225,33 @@ exp(newplasma.model2$coefficients)
 newplasma.x0 <- data.frame(age = c(26))
 (newplasma.y0.pred2 <- cbind(newplasma.x0,
                              fit = exp(predict(newplasma.model2, newplasma.x0)),
-                             conf = exp(predict(newplasma.model2, newplasma.x0, interval = "confidence")),
-                             pred = exp(predict(newplasma.model2, newplasma.x0, interval = "prediction"))))
+                             conf = exp(predict(newplasma.model2,
+                                                newplasma.x0,
+                                                interval = "confidence")),
+                             pred = exp(predict(newplasma.model2,
+                                                newplasma.x0,
+                                                interval = "prediction"))))
 
 newplasma.x0 <- data.frame(age = c(75))
 (newplasma.y0.pred2 <- cbind(newplasma.x0,
                              fit = exp(predict(newplasma.model2, newplasma.x0)),
-                             conf = exp(predict(newplasma.model2, newplasma.x0, interval = "confidence")),
-                             pred = exp(predict(newplasma.model2, newplasma.x0, interval = "prediction"))))
+                             conf = exp(predict(newplasma.model2,
+                                                newplasma.x0,
+                                                interval = "confidence")),
+                             pred = exp(predict(newplasma.model2, 
+                                                newplasma.x0, 
+                                                interval = "prediction"))))
 (interval_width_75 <- newplasma.y0.pred2$conf.upr - newplasma.y0.pred2$conf.lwr)
 
 newplasma.x0 <- data.frame(age = c(76))
 (newplasma.y0.pred2 <- cbind(newplasma.x0,
                              fit = exp(predict(newplasma.model2, newplasma.x0)),
-                             conf = exp(predict(newplasma.model2, newplasma.x0, interval = "confidence")),
-                             pred = exp(predict(newplasma.model2, newplasma.x0, interval = "prediction"))))
+                             conf = exp(predict(newplasma.model2,
+                                                newplasma.x0,
+                                                interval = "confidence")),
+                             pred = exp(predict(newplasma.model2,
+                                                newplasma.x0,
+                                                interval = "prediction"))))
 
 120.4364 - 119.6004
 170.6154 - 169.431

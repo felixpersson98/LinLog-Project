@@ -1,6 +1,4 @@
-
-
-# turning the categorical variables into factors
+# Turning the categorical variables into factors
 newplasma$sex <- factor(newplasma$sex,
                      levels = c(1, 2),
                      labels = c("Male", "Female"))
@@ -62,6 +60,28 @@ confint(newplasma.model4)
 
 # Former smoker + underweight beta intervals include 0
 # --> test model without the variables
-newplasma.model5 <- lm(log(betaplasma) ~ I(age - minage) +
-                         sex + smokstat + bmicat, data = newplasma)
 
+
+### Smokstat beta siginificance test ######
+# Introduce new model without smoke status
+newplasma.model5 <- lm(log(betaplasma) ~ I(age - minage) +
+                         sex + bmicat, data = newplasma)
+
+# Partial F-test
+(newplasma.smokstat.anova <- anova(newplasma.model4, newplasma.model5))
+(Fvalue <- newplasma.smokstat.anova$F[2])
+# qf(1 - 0.05, 6, 306)
+
+
+### Bmicat beta significance test #####
+# Introduce new model without BMI category
+newplasma.model6 <- lm(log(betaplasma) ~ I(age - minage) +
+                         sex + smokstat, data = newplasma)
+
+# Partial F-test
+(newplasma.smokstat.anova <- anova(newplasma.model4, newplasma.model5))
+(Fvalue <- newplasma.smokstat.anova$F[2])
+# qf(1 - 0.05, 6, 306)
+
+
+### Anova test for category check within BMI category #####
