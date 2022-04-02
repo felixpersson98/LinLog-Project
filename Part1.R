@@ -33,17 +33,17 @@ head(newplasma.pred1)
   plot.data1 <- 
     ggplot(data = newplasma.pred1, aes(x = age, y = betaplasma)) + 
     geom_point(size = 2) +
-    xlab("Ålder (år)") +
-    ylab("Betakaroten (ng/ml)") +
-    labs(title = "Ålder och betakaroten") +
-    theme(text = element_text(size = 14))
+    xlab("Age (years)") +
+    ylab("Beta-carotene (ng/ml)") +
+    labs(title = "Age and plasma beta-carotene") +
+    theme(text = element_text(size = 12))
 )
 
 # Add the fitted line to the data plot
 (
   plot.line1 <- plot.data1 + 
     geom_line(aes(y = fit), color = "blue", size = 1) +
-    labs(caption = "data and fitted line")
+    labs(title = "Age and plasma beta-carotene, linear model")
 )
 
 
@@ -66,23 +66,22 @@ head(newplasma.pred2)
   plot.data2 <- 
     ggplot(data = newplasma.pred2, aes(x = age, y = log(betaplasma))) + 
     geom_point(size = 2) +
-    xlab("Ålder") +
-    ylab("log(Betakaroten)") +
-    labs(title = "Ålder och log(betakaroten)") +
-    theme(text = element_text(size = 14))
+    xlab("Age (years)") +
+    ylab("log(Beta-carotene (ng/ml))") +
+    labs(title = "Age and log(beta-carotene)") +
+    theme(text = element_text(size = 12))
 )
 # Add the fitted line to the data plot
 (
   plot.line2 <- plot.data2 + 
     geom_line(aes(y = fit), color = "blue", size = 1) +
-    labs(caption = "data and fitted line")
+    labs(title = "Age and plasma beta-carotene, logarithmic model")
 )
 
 # Add confidence interval
 (
   plot.conf2 <- plot.line2 + 
-    geom_ribbon(aes(ymin = conf.lwr, ymax = conf.upr), alpha = 0.2) +
-    labs(caption = "data, fitted line and 95% confidence interval")
+    geom_ribbon(aes(ymin = conf.lwr, ymax = conf.upr), alpha = 0.2)
 )
 
 # Add prediction interval
@@ -91,7 +90,8 @@ plot.conf2 +
             color = "red", linetype = "dashed", size = 1) +
   geom_line(aes(y = pred.upr),
             color = "red", linetype = "dashed", size = 1) +
-  labs(caption = "data, fitted line, 95% confidence and prediction intervals")
+  labs(title = "Age and plasma beta-carotene, logarithmic model, with 
+       confidence and prediction intervals")
 
 
 ###### Residual Analysis ######
