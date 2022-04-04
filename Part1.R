@@ -15,6 +15,7 @@ minage <- min(newplasma$betaplasma)
 ###### Linear model ######
 newplasma.model1 <- lm(betaplasma ~ I(age - minage), data = newplasma)
 summary(newplasma.model1)
+confint(newplasma.model1)
 
 # Fit a line
 newplasma.pred1 <- 
@@ -201,7 +202,8 @@ ggplot(data = newplasma.pred2, aes(x = e)) +
 ### Choosing logarithmic model! ###
 
 # Calculate the confidence intervals for beta:
-conf <- confint(newplasma.model2)
+(conf <- confint(newplasma.model2))
+newplasma.model2$coefficients
 exp(conf)
 exp(newplasma.model2$coefficients)
 # confint(newplasma.model1)
