@@ -1,87 +1,177 @@
+
+##### Part A #####
 # Turning the categorical variables into factors
-newplasma$sex <- factor(newplasma$sex,
+data$sex <- factor(data$sex,
                      levels = c(1, 2),
                      labels = c("Male", "Female"))
 
-newplasma$smokstat <- factor(newplasma$smokstat,
+data$smokstat <- factor(data$smokstat,
                      levels = c(1, 2, 3),
                      labels = c("Never", "Former", "Current Smoker"))
 
-newplasma$bmicat <- factor(newplasma$bmicat,
+data$bmicat <- factor(data$bmicat,
                      levels = c(1, 2, 3, 4),
                      labels = c("Underweight", "Normal", "Overweight", "Obese"))
 
-table(newplasma$sex)
-table(newplasma$smokstat)
-table(newplasma$bmicat)
+# Frequency table for each categorical variable
+table(data$sex)
+table(data$smokstat)
+table(data$bmicat)
 
+
+##### Part B #####
 # Create model and change reference region
-newplasma.model3 <- lm(log(betaplasma) ~ I(age - minage) + bmicat, 
-                       data = newplasma)
+model3.log <- lm(log(data$betaplasma) ~ I(age - minage) + bmicat, 
+                       data = data)
 
-summary(newplasma.model3)
-
-# Change reference category
-newplasma$bmicat <- relevel(newplasma$bmicat, "Normal")
-newplasma.model3 <- lm(log(betaplasma) ~ I(age - minage) + bmicat,
-                       data = newplasma)
-summary(newplasma.model3)
-
-newplasma$sex <- relevel(newplasma$sex, "Female")
-
-# New model with all parameters
-newplasma.model4 <- lm(log(betaplasma) ~ I(age - minage) +
-                         sex + smokstat + bmicat, data = newplasma)
-
-(betas <- data.frame(beta=newplasma.model4$coefficients, 
-                     exp.beta=exp(newplasma.model4$coefficients),
-                     lower.boundary=exp(confint(newplasma.model4))[,1],
-                     upper.boundary=exp(confint(newplasma.model4)[,2])))
-
-# Various tests
-# Global F-test for testing the relevance of the full model
-(newplasma.model4.summary <- summary(newplasma.model4))
+# Display model-properties
+summary(model3.log)
 
 
-# Partial F-test to see whether categorical variables contributes to model 
-# precision
-(newplasma.anova <- anova(newplasma.model2, newplasma.model4))
-(Fvalue <- newplasma.anova$F[2])
-qf(1 - 0.05, 6, 306)
+# Change reference level in BMI category
+data$bmicat <- relevel(data$bmicat, "Normal")
+model3.log <- lm(log(betaplasma) ~ I(age - minage) + bmicat,
+                       data = data)
+summary(model3.log)
 
+# Change reference level in sex category
+data$sex <- relevel(data$sex, "Female")
+model3.log <- lm(log(betaplasma) ~ I(age - minage) + bmicat,
+                 data = data)
+summary(model3.log)
+
+
+
+##### Part C ######
+# Introduce new model with all parameters
+model4.log.full <- lm(log(betaplasma) ~ I(age - minage) +
+                         sex + smokstat + bmicat, data = data)
+
+(betas <- data.frame(beta = model4.log.full$coefficients, 
+                     exp.beta = exp(model4.log.full$coefficients),
+                     lower.boundary = exp(confint(model4.log.full))[,1],
+                     upper.boundary = exp(confint(model4.log.full)[,2])))
+
+
+### Global F-test - C.1 ###
+(model4.log.full.sum <- summary(model4.log.full))
+(model4.log.full.fstat <- model4.log.full.sum$fstatistic)
+
+
+### Partial F-test to test significance among categorical betas - C.2 ###
+(model2.log.model4.full.log.anova <- anova(model2.log, model4.log.full))
+
+(Fvalue <- model2.log.model4.full.log.anova$F[2])
+(ref <- qf(1 - 0.05, 6, 306))
+
+
+# TODO - kolla kvantiler
 # Calculate P-value:
-pf(Fvalue, 6, 306, lower.tail = FALSE)
-newplasma.anova$`Pr(>F)`[2]
+(pf(Fvalue, 6, 306, lower.tail = FALSE))
 
 # --> Reject H0
 
-# Check significance levels among betas
-confint(newplasma.model4)
+### Global F-test - C.3 ###
+# Age
+model4.red.age <- lm(log(betaplasma) ~ sex + smokstat + bmicat, data = data)
+(model4.red.age.anova <- anova(model4.log.full, model4.red.age))
 
-# Former smoker + underweight beta intervals include 0
-# --> test model without the variables
+# TODO - -11-
+(model4.red.age.fvalue <- model4.red.age.anova$F[2])
+(model4.red.age.ref <- qf(1 - 0.05, 6, 306))
 
+# Sex
+model4.red.sex <- lm(log(betaplasma) ~ I(age - minage) + smokstat + bmicat,
+                     data = data)
+(model4.red.sex.anova <- anova(model4.log.full, model4.red.sex))
 
-### Smokstat beta siginificance test ######
-# Introduce new model without smoke status
-newplasma.model5 <- lm(log(betaplasma) ~ I(age - minage) +
-                         sex + bmicat, data = newplasma)
-
-# Partial F-test
-(newplasma.smokstat.anova <- anova(newplasma.model4, newplasma.model5))
-(Fvalue <- newplasma.smokstat.anova$F[2])
-# qf(1 - 0.05, 6, 306)
-
-
-### Bmicat beta significance test #####
-# Introduce new model without BMI category
-newplasma.model6 <- lm(log(betaplasma) ~ I(age - minage) +
-                         sex + smokstat, data = newplasma)
-
-# Partial F-test
-(newplasma.smokstat.anova <- anova(newplasma.model4, newplasma.model5))
-(Fvalue <- newplasma.smokstat.anova$F[2])
-# qf(1 - 0.05, 6, 306)
+# TODO - -11-
+(model4.red.sex.fvalue <- model4.red.sex.anova$F[2])
+(model4.red.sex.ref <- qf(1 - 0.05, 6, 306))
 
 
-### Anova test for category check within BMI category #####
+model4.red.smokstat <- lm(log(betaplasma) ~ I(age - minage) + sex + bmicat, 
+                          data = data)
+(model4.red.smokstat.anova <- anova(model4.log.full, model4.red.smokstat))
+
+# TODO - -11-
+(model4.red.smokstat.fvalue <- model4.red.smokstat.anova$F[2])
+(model4.red.smokstat.ref <- qf(1 - 0.05, 6, 306))
+
+model4.red.bmicat <- lm(log(betaplasma) ~ I(age - minage) + sex + smokstat, 
+                        data = data)
+(model4.red.bmicat.anova <- anova(model4.log.full, model4.red.bmicat))
+
+# TODO - -11-
+(model4.red.bmicat.fvalue <- model4.red.bmicat.anova$F[2])
+(model4.red.bmicat.ref <- qf(1 - 0.05, 6, 306))
+
+# Display results
+(model4.removed.betas <- data.frame(
+  row.names = c("Red. age category", "Red. sex category", "Red. smokstat",
+                "Red. BMI category"),
+  fvalue = c(model4.red.age.fvalue, model4.red.sex.fvalue, 
+           model4.red.smokstat.fvalue, model4.red.bmicat.fvalue),
+  upper.quantile = c(model4.red.age.ref, model4.red.sex.ref, 
+                   model4.red.smokstat.ref, model4.red.bmicat.ref)))
+
+
+### T-test for underweight - C.4 ###
+model4.log.full$coefficients
+
+# BMI category underweight: H0 --> beta_bmicatUnderweight = 0
+(underweight.tstat <- model4.log.full.sum$coefficients["bmicatUnderweight",
+                                                       "t value"])
+(underweight.comp <- data.frame("Lower qt." = qt(0.05/2, 306),
+                                 "T-stat" = underweight.tstat,
+                                 "Upper qt." = qt(1 - 0.05/2, 306)))
+
+
+##### Part D #####
+# Make predictions with the new model
+model4.log.full.pred <- cbind(data, 
+                         fit = predict(model4.log.full),
+                         conf = predict(model4.log.full, 
+                                        interval = "confidence"),
+                         pred = predict(model4.log.full, 
+                                        interval = "prediction"))
+head(model4.log.full.pred)
+(
+  plot3.data <- ggplot(data = model4.log.full.pred, 
+                      aes(x = age, y = log(betaplasma), color = sex)) + 
+               geom_point(size = 2) + 
+               geom_hline(yintercept = mean(log(data$betaplasma))) + 
+               xlab("Ålder") + ylab("Log(Betakaroten)") + 
+               labs(title = "Age and log(beta-carotene)") +
+               theme(text = element_text(size = 12)) +
+               facet_grid(smokstat ~ relevel(bmicat, "Underweight"))
+)
+
+average_age <- mean(data$age) - minage
+
+# Add the fitted line to the data plot
+(
+  plot3.line <- plot3.data + 
+    geom_line(aes(y = fit), color = "blue", size = 1)
+)
+
+# Add confidence interval
+(
+  plot3.conf <- plot3.line + 
+    geom_ribbon(aes(ymin = conf.lwr, ymax = conf.upr), alpha = 0.2)
+)
+
+# Add prediction interval
+(
+ plot3.full <- plot3.conf + geom_line(aes(y = pred.lwr), color = "red", 
+                                      linetype = "dashed", size = 1) + 
+               geom_line(aes(y = pred.upr),  color = "red", linetype = "dashed",
+                         size = 1)
+)
+
+# Beta estimates
+model4.log.full$coefficients
+
+
+
+

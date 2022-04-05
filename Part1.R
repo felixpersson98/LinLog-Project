@@ -191,3 +191,4 @@ x0.ages.pred$interval_width <- x0.ages.pred$conf.upr - x0.ages.pred$conf.lwr
 
 # Display interval ages and corresponding interval width
 cbind(x0.ages.pred["age"], x0.ages.pred["interval_width"]) 
+
