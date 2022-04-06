@@ -1,6 +1,10 @@
 .Rproj.user
-.DS_Store
-Projekt.Rproj
-Projekt1.Rproj
-.Rhistory
 **.Rproj.user
+.Rhistory
+.RData
+Project.Rproj
+Projekt1.Rproj
+Images/
+.DS_Store
+
+

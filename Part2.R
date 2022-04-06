@@ -21,36 +21,33 @@ table(data$bmicat)
 
 ##### Part B #####
 # Create model and change reference region
-model3.log <- lm(log(data$betaplasma) ~ I(age - minage) + bmicat, 
-                       data = data)
+model3.log <- lm(log(data$betaplasma) ~ I(age - minage) + bmicat, data = data)
 
 # Display model-properties
 summary(model3.log)
 
-
 # Change reference level in BMI category
 data$bmicat <- relevel(data$bmicat, "Normal")
-model3.log <- lm(log(betaplasma) ~ I(age - minage) + bmicat,
-                       data = data)
+model3.log <- lm(log(betaplasma) ~ I(age - minage) + bmicat, data = data)
 summary(model3.log)
 
 # Change reference level in sex category
 data$sex <- relevel(data$sex, "Female")
-model3.log <- lm(log(betaplasma) ~ I(age - minage) + bmicat,
-                 data = data)
+model3.log <- lm(log(betaplasma) ~ I(age - minage) + bmicat, data = data)
 summary(model3.log)
-
 
 
 ##### Part C ######
 # Introduce new model with all parameters
-model4.log.full <- lm(log(betaplasma) ~ I(age - minage) +
-                         sex + smokstat + bmicat, data = data)
+model4.log.full <- lm(log(betaplasma) ~ I(age - minage) + sex + smokstat + 
+                      bmicat, data = data)
 
-(betas <- data.frame(beta = model4.log.full$coefficients, 
+(
+  betas <- data.frame(beta = model4.log.full$coefficients, 
                      exp.beta = exp(model4.log.full$coefficients),
                      lower.boundary = exp(confint(model4.log.full))[,1],
-                     upper.boundary = exp(confint(model4.log.full)[,2])))
+                     upper.boundary = exp(confint(model4.log.full)[,2]))
+)
 
 
 ### Global F-test - C.1 ###
@@ -136,6 +133,8 @@ model4.log.full.pred <- cbind(data,
                          pred = predict(model4.log.full, 
                                         interval = "prediction"))
 head(model4.log.full.pred)
+
+# Plot predictions vs data
 (
   plot3.data <- ggplot(data = model4.log.full.pred, 
                       aes(x = age, y = log(betaplasma), color = sex)) + 
@@ -171,7 +170,6 @@ average_age <- mean(data$age) - minage
 
 # Beta estimates
 model4.log.full$coefficients
-
 
 
 
