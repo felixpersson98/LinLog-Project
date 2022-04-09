@@ -8,7 +8,7 @@ summary(data)
 
 # Delete invalid datapoint and store minimum
 data <- data[data$betaplasma > 0, ]
-minage <- min(data$betaplasma)
+minage <- min(data$age)
 
 
 ###### Linear model ######
@@ -48,6 +48,11 @@ ggsave(filename="AgeVsBetaCarotene.png", path="Images/Part 1/")
 
 ###### Logarithmic model ######
 model2.log <- lm(log(betaplasma) ~ I(age - minage), data = data)
+summary(model2.log)$coefficients
+exp(summary(model2.log)$coefficients)
+confint(model2.log)
+exp(confint(model2.log))
+
 
 # Fit a log line and display head
 model2.log.pred <- cbind(data, 
@@ -66,7 +71,7 @@ head(model2.log.pred)
     ggplot(data = model2.log.pred, aes(x = age, y = log(betaplasma))) + 
     geom_point(size = 2) +
     xlab("Age (years)") +
-    ylab("log(Beta-carotene (ng/ml))") +
+    ylab("log(beta-carotene)") +
     labs(title = "Age and log(beta-carotene)") +
     theme(text = element_text(size = 14), plot.title = element_text(size=22))
 )
@@ -110,7 +115,7 @@ head(model1.linear.pred)
   plot3.data <- ggplot(data = model1.linear.pred, aes(x = age, y = e)) +
          geom_point(size = 2) + geom_hline(yintercept = 0) + 
          expand_limits(y = model1.linear.pred.elims) + xlab("Age") + 
-         ylab("Residual") + labs(title = "Residuals vs Age") +
+         ylab("Residual") + labs(title = "Residuals vs age, linear model") +
          theme(text = element_text(size = 14),
                plot.title = element_text(size=22))
 )
@@ -122,10 +127,10 @@ ggsave(filename="ResVsAgeLin.png", path="Images/Part 1/")
   plot4 <- ggplot(data = model1.linear.pred, aes(x = fit, y = e)) + 
     geom_point(size = 2) + geom_hline(yintercept = 0) + 
     expand_limits(y = model1.linear.pred.elims) + 
-    xlab("Predicted concentrations of Beta Carotene (ng/ml)") + 
-    ylab("Residual") + labs(title = "Residuals vs predicted values Y-hat") +
-    theme(text = element_text(size = 14),
-          plot.title = element_text(size=22))
+    xlab("Predicted concentrations of beta-carotene (ng/ml)") + 
+    ylab("Residual") + labs(
+      title = "Residuals vs predicted values y-hat, linear model") +
+    theme(text = element_text(size = 14), plot.title = element_text(size=18))
 )
 ggsave(filename="ResVsYhatLin.png", path="Images/Part 1/")
 
@@ -133,16 +138,17 @@ ggsave(filename="ResVsYhatLin.png", path="Images/Part 1/")
 (
   plot5 <- ggplot(data = model1.linear.pred, aes(sample = e)) + 
     geom_qq(size = 2) + geom_qq_line() + 
-    labs(title = "Normal Q-Q-plot of the residuals") + 
-    theme(text = element_text(size = 14), plot.title = element_text(size=22))
+    labs(title = "Normal Q-Q-plot of the residuals, linear model") +
+    xlab("Normal quantiles") + ylab("Residual quantiles") +
+    theme(text = element_text(size = 14), plot.title = element_text(size=18))
 )
 ggsave(filename="QQplotResLin.png", path="Images/Part 1/")
 
 # Histogram of the residuals:
 (
   plot6 <- ggplot(data = model1.linear.pred, aes(x = e)) +
-       geom_histogram(bins = 10) + xlab("Residuals") +
-       labs(title = "Histogram of residuals") +
+       geom_histogram(bins = 10) + xlab("Residuals") + ylab("Count (n)") +
+       labs(title = "Histogram of residuals, linear model") +
        theme(text = element_text(size = 14))
 )
 ggsave(filename="HistplotResLin.png", path="Images/Part 1/")
@@ -163,8 +169,8 @@ head(model2.log.pred)
 (
   plot7 <- ggplot(data = model2.log.pred, aes(x = age, y = e)) + 
        geom_point(size = 2) + geom_hline(yintercept = 0) + 
-       expand_limits(y = model2.log.pred.elims) + xlab("År") + ylab("Residual") 
-       + labs(title = "Residuals vs x-values") +
+       expand_limits(y = model2.log.pred.elims) + xlab("Age") + ylab("Residual") 
+       + labs(title = "Residuals vs age, logarithmic model") +
        theme(text = element_text(size = 14), plot.title = element_text(size=22))
 )
 ggsave(filename="ResVsAgeLog.png", path="Images/Part 1/")
@@ -176,8 +182,8 @@ ggsave(filename="ResVsAgeLog.png", path="Images/Part 1/")
        geom_point(size = 2) + geom_hline(yintercept = 0) + 
        expand_limits(y = model2.log.pred.elims) +
        xlab("Predicted betakaroten") + ylab("Residual") +
-       labs(title = "Residuals vs predicted values Y-hat") +
-       theme(text = element_text(size = 14), plot.title = element_text(size=22))
+       labs(title = "Residuals vs predicted values Y-hat, logarithmic model") +
+       theme(text = element_text(size = 14), plot.title = element_text(size=18))
 )
 ggsave(filename="ResVsYhatLog.png", path="Images/Part 1/")
 
@@ -191,9 +197,10 @@ ggsave(filename="QQplotResLog.png", path="Images/Part 1/")
 
 # Histogram of the residuals:
 (
-  plot10 <- ggplot(data = model2.log.pred, aes(x = e)) + geom_histogram(bins = 10) +
-       xlab("Residuals") + labs(title = "Histogram of residuals") +
-       theme(text = element_text(size = 14))
+  plot10 <- ggplot(data = model2.log.pred, aes(x = e)) + 
+    geom_histogram(bins = 10) + xlab("Residuals") + ylab("Count (n)") +
+    labs(title = "Histogram of residuals, logarithmic model") + 
+    theme(text = element_text(size = 14))
 )
 ggsave(filename="HistplotResLog.png", path="Images/Part 1/")
 
