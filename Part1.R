@@ -1,6 +1,9 @@
 # Imports
 library(ggplot2)
 
+# Constants
+overwrite.images <- FALSE
+
 # Read data file
 data <- read.delim(file = "Data/plasma.txt")
 head(data)
@@ -44,7 +47,9 @@ head(model1.linear.pred)
     geom_line(aes(y = fit), color = "blue", size = 1) +
     labs(title = "Age and data beta-carotene, linear model")
 )
-ggsave(filename="AgeVsBetaCarotene.png", path="Images/Part 1/")
+if(overwrite.images) {
+  ggsave(filename="AgeVsBetaCarotene.png", path="Images/Part 1/")
+} 
 
 ###### Logarithmic model ######
 model2.log <- lm(log(betaplasma) ~ I(age - minage), data = data)
@@ -95,8 +100,9 @@ head(model2.log.pred)
              geom_line(aes(y = pred.upr), 
                        color = "red", linetype = "dashed", size = 1)
 )
-ggsave(filename="AgeVsLogBetaCarotene.png", path="Images/Part 1/")
-
+if(overwrite.images) {
+  ggsave(filename="AgeVsLogBetaCarotene.png", path="Images/Part 1/")
+}
 ###### Residual Analysis ######
 ### Linear model ###
 
@@ -119,7 +125,9 @@ head(model1.linear.pred)
          theme(text = element_text(size = 14),
                plot.title = element_text(size=22))
 )
-ggsave(filename="ResVsAgeLin.png", path="Images/Part 1/")
+if(overwrite.images) {
+  ggsave(filename="ResVsAgeLin.png", path="Images/Part 1/")
+}
 
 # Plot residuals against yhat, add a horizontal line at y=0,
 # and expand the y-axis to include +/- max residual.
@@ -132,7 +140,9 @@ ggsave(filename="ResVsAgeLin.png", path="Images/Part 1/")
       title = "Residuals vs predicted values y-hat, linear model") +
     theme(text = element_text(size = 14), plot.title = element_text(size=18))
 )
-ggsave(filename="ResVsYhatLin.png", path="Images/Part 1/")
+if(overwrite.images) {
+  ggsave(filename="ResVsYhatLin.png", path="Images/Part 1/")
+}
 
 # Make a normal qq-plot of the residuals.
 (
@@ -142,7 +152,9 @@ ggsave(filename="ResVsYhatLin.png", path="Images/Part 1/")
     xlab("Normal quantiles") + ylab("Residual quantiles") +
     theme(text = element_text(size = 14), plot.title = element_text(size=18))
 )
-ggsave(filename="QQplotResLin.png", path="Images/Part 1/")
+if(overwrite.images) {
+  ggsave(filename="QQplotResLin.png", path="Images/Part 1/")
+}
 
 # Histogram of the residuals:
 (
@@ -151,8 +163,9 @@ ggsave(filename="QQplotResLin.png", path="Images/Part 1/")
        labs(title = "Histogram of residuals, linear model") +
        theme(text = element_text(size = 14))
 )
-ggsave(filename="HistplotResLin.png", path="Images/Part 1/")
-
+if(overwrite.images) {
+  ggsave(filename="HistplotResLin.png", path="Images/Part 1/")
+}
 
 ### Logarithmic model ###
 # Add the residuals to the predicted data
@@ -173,7 +186,9 @@ head(model2.log.pred)
        + labs(title = "Residuals vs age, logarithmic model") +
        theme(text = element_text(size = 14), plot.title = element_text(size=22))
 )
-ggsave(filename="ResVsAgeLog.png", path="Images/Part 1/")
+if(overwrite.images) {
+  ggsave(filename="ResVsAgeLog.png", path="Images/Part 1/")
+}
 
 # Plot residuals against y-hat, add a horizontal line at y=0,
 # and expand the y-axis to include +/- max residual.
@@ -185,7 +200,9 @@ ggsave(filename="ResVsAgeLog.png", path="Images/Part 1/")
        labs(title = "Residuals vs predicted values Y-hat, logarithmic model") +
        theme(text = element_text(size = 14), plot.title = element_text(size=18))
 )
-ggsave(filename="ResVsYhatLog.png", path="Images/Part 1/")
+if(overwrite.images) {
+  ggsave(filename="ResVsYhatLog.png", path="Images/Part 1/")
+}
 
 # Make a normal qq-plot of the residuals.
 (
@@ -193,7 +210,9 @@ ggsave(filename="ResVsYhatLog.png", path="Images/Part 1/")
        geom_qq_line() + labs(title = "Normal Q-Q-plot of the residuals") +
        theme(text = element_text(size = 14))
 )
-ggsave(filename="QQplotResLog.png", path="Images/Part 1/")
+if(overwrite.images) {
+  ggsave(filename="QQplotResLog.png", path="Images/Part 1/")
+}
 
 # Histogram of the residuals:
 (
@@ -202,8 +221,9 @@ ggsave(filename="QQplotResLog.png", path="Images/Part 1/")
     labs(title = "Histogram of residuals, logarithmic model") + 
     theme(text = element_text(size = 14))
 )
-ggsave(filename="HistplotResLog.png", path="Images/Part 1/")
-
+if(overwrite.images) {
+  ggsave(filename="HistplotResLog.png", path="Images/Part 1/")
+}
 
 ### Choosing logarithmic model ###
 # Calculate the confidence intervals for beta:
