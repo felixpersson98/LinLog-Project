@@ -56,7 +56,7 @@ model4.log.full$coefficients
 
 # TODO - fixa kvantiler
 (Fvalue <- model2.log.model4.full.log.anova$F[2])
-(ref <- qf(1 - 0.05, 6, 306))
+(ref <- qf(1 - 0.025, 6, 306))
 
 
 # TODO - fixa kvantiler
@@ -75,7 +75,7 @@ model4.red.age <- lm(log(betaplasma) ~ sex + smokstat + bmicat, data = data)
 
 # TODO - -11-
 (model4.red.age.fvalue <- model4.red.age.anova$F[2])
-(model4.red.age.ref <- qf(1 - 0.025, 6, 306))
+(model4.red.age.ref <- qf(1 - 0.025, 1, 306))
 
 # Sex
 model4.red.sex <- lm(log(betaplasma) ~ I(age - minage) + smokstat + bmicat,
@@ -84,7 +84,7 @@ model4.red.sex <- lm(log(betaplasma) ~ I(age - minage) + smokstat + bmicat,
 
 # TODO - -11-
 (model4.red.sex.fvalue <- model4.red.sex.anova$F[2])
-(model4.red.sex.ref <- qf(1 - 0.05, 6, 306))
+(model4.red.sex.ref <- qf(1 - 0.025, 6, 306))
 
 
 model4.red.smokstat <- lm(log(betaplasma) ~ I(age - minage) + sex + bmicat, 
@@ -93,7 +93,7 @@ model4.red.smokstat <- lm(log(betaplasma) ~ I(age - minage) + sex + bmicat,
 
 # TODO - -11-
 (model4.red.smokstat.fvalue <- model4.red.smokstat.anova$F[2])
-(model4.red.smokstat.ref <- qf(1 - 0.05, 6, 306))
+(model4.red.smokstat.ref <- qf(1 - 0.025, 2, 306))
 
 model4.red.bmicat <- lm(log(betaplasma) ~ I(age - minage) + sex + smokstat, 
                         data = data)
@@ -101,7 +101,7 @@ model4.red.bmicat <- lm(log(betaplasma) ~ I(age - minage) + sex + smokstat,
 
 # TODO - -11-
 (model4.red.bmicat.fvalue <- model4.red.bmicat.anova$F[2])
-(model4.red.bmicat.ref <- qf(1 - 0.05, 6, 306))
+(model4.red.bmicat.ref <- qf(1 - 0.05, 3, 306))
 
 # Display results
 (model4.removed.betas <- data.frame(
@@ -123,6 +123,10 @@ model4.log.full$coefficients
                                  "T-stat" = underweight.tstat,
                                  "Upper qt." = qt(1 - 0.05/2, 306)))
 
+# Pvalue:
+# 2*P(|t| > |tvalue|) to cover both tails:
+2*pt(underweight.tstat, 306, lower.tail = FALSE)
+sum.full$coefficients["fertilize", "Pr(>|t|)"]
 
 ##### Part D #####
 # Make predictions with the new model
@@ -172,55 +176,4 @@ average_age <- mean(data$age) - minage
 model4.log.full$coefficients
 
 
-## Part e ##
 
-model5.log.full <- lm(log(betaplasma) ~ I(age - minage) + sex + smokstat + 
-                        quetelet, data = data)
-
-parametersMale5 <- data.frame(
-  "age" = 40 - minage,
-  "sex" = "Male",
-  "smokstat" = "Current Smoker",
-  "quetelet" = 22
-  )
-
-parametersFemale5 <- data.frame(
-  "age" = 40 - minage,
-  "sex" = "Female",
-  "smokstat" = "Current Smoker",
-  "quetelet" = 22
-)
-parametersMale4 <- data.frame(
-  "age" = 40 - minage,
-  "sex" = "Male",
-  "smokstat" = "Current Smoker",
-  "bmicat" = "Normal"
-)
-parametersFemale4 <- data.frame(
-  "age" = 40 - minage,
-  "sex" = "Female",
-  "smokstat" = "Current Smoker",
-  "bmicat" = "Normal"
-)
-(
-  resultMale5 <- predict(model5.log.full, newdata = parametersMale, interval = "confidence")
-)
-
-(
-  resultFemale5 <- predict(model5.log.full, newdata = parametersFemale, interval = "confidence")
-)
-
-(
-  resultMale4 <- predict(model4.log.full, newdata = parametersMale4, interval = "confidence")
-)
-(
-  resultFemale4 <- predict(model4.log.full, newdata = parametersFemale4, interval = "confidence")
-)
-
-
-## Part 5 ##
-
-# Use both bmicat and quetelet in the model, ie
-
-model6.log.full <- lm(log(betaplasma) ~ I(age - minage) + sex + smokstat + 
-                          quetelet + bmicat, data = data)
