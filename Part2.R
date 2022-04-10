@@ -171,12 +171,12 @@ average_age <- mean(data$age) - minage
                geom_line(aes(y = pred.upr),  color = "red", linetype = "dashed",
                          size = 1)
 )
+ggsave(file="AgeVsLogBetaCaroteneSplit.png", path="./Images/Part 2/")
 
 # Beta estimates
 model4.log.full$coefficients
 
-
-## Part e ##
+##### Part E #####
 
 model5.log.full <- lm(log(betaplasma) ~ I(age - minage) + sex + smokstat + 
                         quetelet, data = data)
