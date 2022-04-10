@@ -1,4 +1,3 @@
-
 ##### Part A #####
 # Turning the categorical variables into factors
 data$sex <- factor(data$sex,
@@ -20,28 +19,26 @@ table(data$bmicat)
 
 
 ##### Part B #####
-# Create model and change reference region
-model3.log <- lm(log(data$betaplasma) ~ I(age - minage) + bmicat, data = data)
+# Create model
+model3.log <- lm(log(data$betaplasma) ~ bmicat, data = data)
 
 # Display model-properties
 summary(model3.log)
 
 # Change reference level in BMI category
 data$bmicat <- relevel(data$bmicat, "Normal")
-model3.log <- lm(log(betaplasma) ~ I(age - minage) + bmicat, data = data)
+model3.log <- lm(log(betaplasma) ~ bmicat, data = data)
 summary(model3.log)
 
 # Change reference level in sex category
 data$sex <- relevel(data$sex, "Female")
-model3.log <- lm(log(betaplasma) ~ I(age - minage) + bmicat, data = data)
-summary(model3.log)
-
 
 ##### Part C ######
+# TODO - switch approach and directly write table in R with relevant data
 # Introduce new model with all parameters
 model4.log.full <- lm(log(betaplasma) ~ I(age - minage) + sex + smokstat + 
                       bmicat, data = data)
-
+model4.log.full$coefficients
 (
   betas <- data.frame(beta = model4.log.full$coefficients, 
                      exp.beta = exp(model4.log.full$coefficients),
@@ -49,38 +46,41 @@ model4.log.full <- lm(log(betaplasma) ~ I(age - minage) + sex + smokstat +
                      upper.boundary = exp(confint(model4.log.full)[,2]))
 )
 
-
 ### Global F-test - C.1 ###
 (model4.log.full.sum <- summary(model4.log.full))
 (model4.log.full.fstat <- model4.log.full.sum$fstatistic)
-
+(qf(1 - 0.025, 7, 306, lower.tail=TRUE))
 
 ### Partial F-test to test significance among categorical betas - C.2 ###
 (model2.log.model4.full.log.anova <- anova(model2.log, model4.log.full))
 
+# TODO - fixa kvantiler
 (Fvalue <- model2.log.model4.full.log.anova$F[2])
 (ref <- qf(1 - 0.05, 6, 306))
 
 
-# TODO - kolla kvantiler
+# TODO - fixa kvantiler
 # Calculate P-value:
 (pf(Fvalue, 6, 306, lower.tail = FALSE))
 
 # --> Reject H0
 
 ### Global F-test - C.3 ###
+summary(model4.log.full)
+confint(model4.log.full)
+
 # Age
 model4.red.age <- lm(log(betaplasma) ~ sex + smokstat + bmicat, data = data)
-(model4.red.age.anova <- anova(model4.log.full, model4.red.age))
+(model4.red.age.anova <- anova(model4.red.age, model4.log.full))
 
 # TODO - -11-
 (model4.red.age.fvalue <- model4.red.age.anova$F[2])
-(model4.red.age.ref <- qf(1 - 0.05, 6, 306))
+(model4.red.age.ref <- qf(1 - 0.025, 6, 306))
 
 # Sex
 model4.red.sex <- lm(log(betaplasma) ~ I(age - minage) + smokstat + bmicat,
                      data = data)
-(model4.red.sex.anova <- anova(model4.log.full, model4.red.sex))
+(model4.red.sex.anova <- anova(model4.red.sex, model4.log.full))
 
 # TODO - -11-
 (model4.red.sex.fvalue <- model4.red.sex.anova$F[2])
@@ -89,7 +89,7 @@ model4.red.sex <- lm(log(betaplasma) ~ I(age - minage) + smokstat + bmicat,
 
 model4.red.smokstat <- lm(log(betaplasma) ~ I(age - minage) + sex + bmicat, 
                           data = data)
-(model4.red.smokstat.anova <- anova(model4.log.full, model4.red.smokstat))
+(model4.red.smokstat.anova <- anova(model4.red.smokstat, model4.log.full))
 
 # TODO - -11-
 (model4.red.smokstat.fvalue <- model4.red.smokstat.anova$F[2])
@@ -97,7 +97,7 @@ model4.red.smokstat <- lm(log(betaplasma) ~ I(age - minage) + sex + bmicat,
 
 model4.red.bmicat <- lm(log(betaplasma) ~ I(age - minage) + sex + smokstat, 
                         data = data)
-(model4.red.bmicat.anova <- anova(model4.log.full, model4.red.bmicat))
+(model4.red.bmicat.anova <- anova(model4.red.bmicat, model4.log.full))
 
 # TODO - -11-
 (model4.red.bmicat.fvalue <- model4.red.bmicat.anova$F[2])
