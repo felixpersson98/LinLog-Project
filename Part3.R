@@ -1,27 +1,34 @@
-library(GGally)
+##### Part A #####
+# Model containing categorical BMI-values
+model1 <- lm(log(betaplasma) ~ I(age - minage) + sex + 
+               smokstat + bmicat, data = data)
 
-# Models from part 1 and 2
-sum1 <- summary(model1)
-sum2 <- summary(model2)
+# Model containing continuous BMI-values
+model2 <-  lm(log(betaplasma) ~ I(age - minage) + sex + 
+                smokstat + quetelet, data = data)
 
-# Collecting R2, AIC and BIC
-(collect.R2s <- data.frame(
-  nr = seq(1, 3),
-  model = c("first model", "second model"),
-  R2 = c(sum1$r.squared,
-         sum2$r.squared),
-  R2.adj = c(sum1$adj.r.squared,
-             sum2$adj.r.squared),
-  AIC(model1, model2),
-  BIC(model1, model2)))
+(
+  comparison.1.2 <- data.frame(
+    R2 = c(sum1$r.squared, sum2$r.squared),
+    R2.adj = c(sum1$adj.r.squared, sum2$adj.r.squared),
+    AIC(model1, model2),
+    BIC(model1, model2)
+  )
+)
 
-age_model <- model1
-background_model <- model2
+background.model <- model1
+age.model <- model2.log
 
+##### Part B #####
 # Creating data frame with all continuous variables
-contx <- newplasma[, c("age", "quetelet", "calories", "fat", "fiber",
-                    "alcohol", "cholesterol", "betadiet")]
-ggpairs(contx) + theme(text = element_text(size = 14))
+contx <- data[, c("age", "quetelet", "calories", "fat", "fiber",
+                       "alcohol", "cholesterol", "betadiet")]
+
+
+ggpairs(data=contx, upper = list(continuous = wrap("cor", size = 3)),
+        lower = list(continuous = wrap("points", alpha = 0.4,    size=0.2))) + 
+        theme(text = element_text(size = 8))
+ggsave(filename = "allcontinuousvariables.png", path="./Images/Part 3/")
 ## HUR GÖR VI DEN LÄSBAR?
 # fat/calories and fat/cholesterol have covariance greater than 0.7
 
@@ -67,19 +74,17 @@ ggplot(cbind(newplasma), aes(x = age, y = v)) +
   labs(caption = "y = 1/n (black) and 2(p+1)/n (red)") +
   xlab("Age (years)") +
   ylab("Leverage")
-  theme(text = element_text(size = 12))
-  
-  # leverage against alcohol
-  ggplot(cbind(newplasma), aes(x = alcohol, y = v)) +
-    geom_jitter(width = 1)  +
-    geom_hline(yintercept = 1/nrow(newplasma)) +
-    geom_hline(yintercept = 2*length(newplasma.model4$coefficients)/nrow(newplasma), 
-               color = "red") +
-    expand_limits(y = c(-0.001, 0.006)) +
-    labs(title = "Leverage vs alcohol") +
-    labs(caption = "y = 1/n (black) and 2(p+1)/n (red)") +
-    xlab("Alcohol consumption (drinks/week)") +
-    ylab("Leverage")
-  theme(text = element_text(size = 12))
+theme(text = element_text(size = 12))
 
-
+# leverage against alcohol
+ggplot(cbind(newplasma), aes(x = alcohol, y = v)) +
+  geom_jitter(width = 1)  +
+  geom_hline(yintercept = 1/nrow(newplasma)) +
+  geom_hline(yintercept = 2*length(newplasma.model4$coefficients)/nrow(newplasma), 
+             color = "red") +
+  expand_limits(y = c(-0.001, 0.006)) +
+  labs(title = "Leverage vs alcohol") +
+  labs(caption = "y = 1/n (black) and 2(p+1)/n (red)") +
+  xlab("Alcohol consumption (drinks/week)") +
+  ylab("Leverage")
+theme(text = element_text(size = 12))
