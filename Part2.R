@@ -176,4 +176,58 @@ average_age <- mean(data$age) - minage
 model4.log.full$coefficients
 
 
+## Part e ##
+
+model5.log.full <- lm(log(betaplasma) ~ I(age - minage) + sex + smokstat + 
+                        quetelet, data = data)
+
+parametersMale5 <- data.frame(
+  "age" = 40 - minage,
+  "sex" = "Male",
+  "smokstat" = "Current Smoker",
+  "quetelet" = 22
+)
+
+parametersFemale5 <- data.frame(
+  "age" = 40 - minage,
+  "sex" = "Female",
+  "smokstat" = "Current Smoker",
+  "quetelet" = 22
+)
+parametersMale4 <- data.frame(
+  "age" = 40 - minage,
+  "sex" = "Male",
+  "smokstat" = "Current Smoker",
+  "bmicat" = "Normal"
+)
+parametersFemale4 <- data.frame(
+  "age" = 40 - minage,
+  "sex" = "Female",
+  "smokstat" = "Current Smoker",
+  "bmicat" = "Normal"
+)
+(
+  resultMale5 <- predict(model5.log.full, newdata = parametersMale, interval = "confidence")
+)
+
+(
+  resultFemale5 <- predict(model5.log.full, newdata = parametersFemale, interval = "confidence")
+)
+
+(
+  resultMale4 <- predict(model4.log.full, newdata = parametersMale4, interval = "confidence")
+)
+(
+  resultFemale4 <- predict(model4.log.full, newdata = parametersFemale4, interval = "confidence")
+)
+
+
+## Part 5 ##
+
+# Use both bmicat and quetelet in the model, ie
+
+model6.log.full <- lm(log(betaplasma) ~ I(age - minage) + sex + smokstat + 
+                        quetelet + bmicat, data = data)
+
+
 
