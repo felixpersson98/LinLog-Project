@@ -1,11 +1,15 @@
+library(ggplot2)
+library(GGally)
 ##### Part A #####
 # Model containing categorical BMI-values
 model1 <- lm(log(betaplasma) ~ I(age - minage) + sex + 
                smokstat + bmicat, data = data)
+sum1 <- summary(model1)
 
 # Model containing continuous BMI-values
 model2 <-  lm(log(betaplasma) ~ I(age - minage) + sex + 
                 smokstat + quetelet, data = data)
+sum2 <- summary(model2)
 
 (
   comparison.1.2 <- data.frame(
@@ -25,66 +29,100 @@ contx <- data[, c("age", "quetelet", "calories", "fat", "fiber",
                        "alcohol", "cholesterol", "betadiet")]
 
 
+# Plot each category against each other
 ggpairs(data=contx, upper = list(continuous = wrap("cor", size = 3)),
-        lower = list(continuous = wrap("points", alpha = 0.4,    size=0.2))) + 
-        theme(text = element_text(size = 8))
+        lower = list(continuous = wrap("points", alpha = 0.3,    size=0.2))) +
+        theme(
+          text = element_text(size = 10), 
+          axis.text.x = element_text(angle =45, hjust = 1),
+          axis.text.y = element_text(size=9)
+        )
 ggsave(filename = "allcontinuousvariables.png", path="./Images/Part 3/")
-## HUR GÖR VI DEN LÄSBAR?
+
+# Correlation matrix
+(correlation.mat <- cor(contx))
+
 # fat/calories and fat/cholesterol have covariance greater than 0.7
 
 # plot fat/calories and fat/cholesterol
-ggplot(data = newplasma, aes(x = fat, y = calories)) +
-  geom_point(size = 1) +
+ggplot(data = data, aes(x = fat, y = calories)) +
+  geom_point(size = 1.5) +
   xlab("Fat per day (g)") +
   ylab("Calories per day") +
   labs(title = "Fat and Calories") +
-  theme(text = element_text(size = 10))
+  theme(text = element_text(size = 12))
+ggsave(filename = "fatvscalories.png", path="./Images/Part 3/")
 
-ggplot(data = newplasma, aes(x = fat, y = cholesterol)) +
-  geom_point(size = 1) +
+ggplot(data = data, aes(x = fat, y = cholesterol)) +
+  geom_point(size = 1.5) +
   xlab("Fat per day (g)") +
   ylab("Cholesterol per day (mg)") +
   labs(title = "Fat and Cholesterol") +
-  theme(text = element_text(size = 10))
+  theme(text = element_text(size = 12))
+ggsave(filename = "fatvscholesterol.png", path="./Images/Part 3/")
 
+head(data)
 # Frequency table of vitamin usage
-table(newplasma$vituse)
 
 # Change reference category to No.
-newplasma$vituse <- factor(newplasma$vituse,
+data$vituse <- factor(data$vituse,
                            levels = c(1, 2, 3),
                            labels = c("Fairly often", "Not often", "No"))
-newplasma$vituse <- relevel(newplasma$vituse, "No")
+table(data$vituse)
+data$vituse <- relevel(data$vituse, ref="No")
 
-newplasma.model4 <- lm(log(betaplasma) ~ I(age - minage) + quetelet +
+
+##### Part C #####
+data.model4 <- lm(log(betaplasma) ~ I(age - minage) + quetelet +
                          calories + fat + fiber + alcohol +
-                         cholesterol + betadiet, data = newplasma)
+                         cholesterol + betadiet, data = data)
 
-# Leverage
-newplasma$v <- influence(newplasma.model4)$hat
+
+# Leverage & yhat
+data$v <- influence(data.model4)$hat
+data$yhat <- predict(data.model4)
+
+# Leverage vs Y-hat
+ggplot(cbind(data), aes(x = predict(data.model4), y = v)) +
+  geom_jitter(width = 1)  +
+  geom_hline(yintercept = 1/nrow(data)) +
+  geom_hline(
+    yintercept = 2*length(data.model4$coefficients)/nrow(data),
+    color = "red"
+  ) + expand_limits(y = c(-0.001, 0.006)) + labs(title = "Leverage vs y-hat") +
+  labs(caption = "y = 1/n (black) and 2(p+1)/n (red)") + xlab("Y-hat (ng/ml)") +
+  ylab("Leverage") + theme(text = element_text(size = 12))
+ggsave(filename = "leveragevsyhat.png", path="./Images/Part 3/")
+
 
 # plot leverage against age
-ggplot(cbind(newplasma), aes(x = age, y = v)) +
+ggplot(cbind(data), aes(x = age, y = v)) +
   geom_jitter(width = 1)  +
-  geom_hline(yintercept = 1/nrow(newplasma)) +
-  geom_hline(yintercept = 2*length(newplasma.model4$coefficients)/nrow(newplasma), 
-             color = "red") +
-  expand_limits(y = c(-0.001, 0.006)) +
-  labs(title = "Leverage vs age") +
-  labs(caption = "y = 1/n (black) and 2(p+1)/n (red)") +
-  xlab("Age (years)") +
-  ylab("Leverage")
-theme(text = element_text(size = 12))
+  geom_hline(yintercept = 1/nrow(data)) +
+  geom_hline(
+    yintercept = 2*length(data.model4$coefficients)/nrow(data),
+    color = "red"
+  ) + expand_limits(y = c(-0.001, 0.006)) + labs(title = "Leverage vs age") +
+  labs(caption = "y = 1/n (black) and 2(p+1)/n (red)") + xlab("Age (years)") +
+  ylab("Leverage") + theme(text = element_text(size = 12))
+ggsave(filename = "leveragevsage.png", path="./Images/Part 3/")
 
 # leverage against alcohol
-ggplot(cbind(newplasma), aes(x = alcohol, y = v)) +
-  geom_jitter(width = 1)  +
-  geom_hline(yintercept = 1/nrow(newplasma)) +
-  geom_hline(yintercept = 2*length(newplasma.model4$coefficients)/nrow(newplasma), 
-             color = "red") +
-  expand_limits(y = c(-0.001, 0.006)) +
-  labs(title = "Leverage vs alcohol") +
+ggplot(cbind(data), aes(x = alcohol, y = v)) +
+  geom_jitter(width = 1)  + geom_hline(yintercept = 1/nrow(data)) +
+  geom_hline(
+    yintercept = 2*length(data.model4$coefficients)/nrow(data), 
+    color = "red"
+  ) + expand_limits(y = c(-0.001, 0.006)) + 
+  labs(title = "Leverage vs alcohol") + 
   labs(caption = "y = 1/n (black) and 2(p+1)/n (red)") +
-  xlab("Alcohol consumption (drinks/week)") +
-  ylab("Leverage")
-theme(text = element_text(size = 12))
+  xlab("Alcohol consumption (drinks/week)") + ylab("Leverage") + 
+  theme(text = element_text(size = 12))
+ggsave(filename = "leveragevsalcohol.png", path="./Images/Part 3/")
+
+# TODO Plot alcohol consumption against all other categories
+# Alcohol vs all other categories
+(
+  plot11 <- ggplot(data=data, mapping=aes(x = yhat, y = alcohol, color=sex)) + 
+    geom_point(size=1) + facet_grid(~ vituse)
+)
