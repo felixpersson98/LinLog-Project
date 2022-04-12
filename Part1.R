@@ -17,7 +17,11 @@ minage <- min(data$age)
 ###### Linear model ######
 model1.linear <- lm(betaplasma ~ I(age - minage), data = data)
 summary(model1.linear)
+
+# Extract betas and corresponding confidence intervals
+model1.linear$coefficients
 confint(model1.linear)
+
 
 # Fit a line and display data
 model1.linear.pred <- cbind(data, 
@@ -46,6 +50,19 @@ head(model1.linear.pred)
   plot1.line <- plot1.data + 
     geom_line(aes(y = fit), color = "blue", size = 1) +
     labs(title = "Age and data beta-carotene, linear model")
+)
+# Add confidence interval
+(
+  plot1.conf <- plot1.line + 
+    geom_ribbon(aes(ymin = conf.lwr, ymax = conf.upr), alpha = 0.2)
+)
+
+# Add prediction interval
+(
+  plot1.pred <- plot1.conf + geom_line(aes(y = pred.lwr),
+                                       color = "red", linetype = "dashed", size = 1) +
+    geom_line(aes(y = pred.upr), 
+              color = "red", linetype = "dashed", size = 1)
 )
 if(overwrite.images) {
   ggsave(filename="AgeVsBetaCarotene.png", path="Images/Part 1/")
