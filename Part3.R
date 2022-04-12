@@ -1,10 +1,11 @@
 # Libraries
+library(grid)
 library(gridExtra)
 
-library(ggplot2)
 library(GGally)
 library(plotly)
 library(tidyverse)
+library(latex2exp)
 
 # Constants
 overwrite.images.3 <- FALSE
@@ -187,10 +188,10 @@ data$rs <- rstudent(data.model4)
     theme(text = element_text(size = 14), plot.title = element_text(size=14))
 )
 (
-  plot.resid.studentized <- ggplot(data=data, aes(x = yhat, y = rs))
-    + geom_point(size=2) + geom_hline(yintercept = c(-3, -2, 0, 2, 3)) 
+  plot.resid.studentized <- ggplot(data=data, aes(x = yhat, y = sqrt(abs(rs))))
+    + geom_point(size=2) + geom_hline(yintercept = c(0, 2, 3)) 
     + labs(title = "Residuals vs Y-hat") + theme(text = element_text(size = 12))
-    + xlab("Y-hat") + ylab("Studentized residuals")
+    + xlab("Y-hat") + ylab(TeX("$\\sqrt{|r^*_i|}$"))
 )
 
 if(overwrite.images.3){
@@ -199,16 +200,120 @@ if(overwrite.images.3){
 }
 
 # Plot studentized residuals vs alcohol and calories where outlier showed
-(plot.rs.c.alc <- plot_ly(x=data$alcohol, y=data$calories, z=data$rs, type="scatter3d",
-                   mode="markers")%>%
+(plot.rs.c.alc <- plot_ly(x=data$alcohol, y=data$v, z=data$r, type="scatter3d",
+                   mode="markers") %>%
                    layout(
-                   title = "Residuals vs alcohol consumption and calories",
+                   title = "Residuals vs leverage and alcohol",
                    scene = list(
                      xaxis = list(title = "Alcohol consumption"), 
-                     yaxis = list(title = "Calories" ),  
-                     zaxis = list(title = "Studentized residuals")
-  )))
+                     yaxis = list(title = "Leverage" ),  
+                     zaxis = list(title = "Residuals")
+)))
 
+###### Part E ######
+# Cook's distance
+data$cd <- cooks.distance(data.model4)
 
+(
+  plot.cd.lev <- ggplot(data=data, mapping=aes(x=v, y=cd)) + geom_point(size=2)
+  + xlab("Leverage") + ylab("Cook's distance") 
+  + labs(title="Cook's distance vs leverage")
+  + theme(text=element_text(size=12))
+  + geom_hline(yintercept = 4 / length(data$v), color="orange") 
+  + geom_hline(yintercept = qf(0.5, 8, 305))
+)
+if(overwrite.images.3){
+  ggsave(filename = "cooksdistancevsleverage.png", path="./Images/Part 3/")
+}
 
+# DF-betas
+(dfb <- dfbetas(data.model4))
 
+# DF-betas for various categories
+(data.columns <- colnames(dfb))
+
+data$intercept.dfbeta <- dfb[, "(Intercept)"]
+data$age.dfbeta <- dfb[, "I(age - minage)"]
+data$quetelet.dfbeta <- dfb[, "quetelet"]
+data$calories.dfbeta <- dfb[, "calories"]
+data$fat.dfbeta <- dfb[, "fat"]
+data$fiber.dfbeta <- dfb[, "fiber"]
+data$alcohol.dfbeta <- dfb[, "alcohol"]
+data$cholesterol.dfbeta <- dfb[, "cholesterol"]
+data$betadiet.dfbeta <- dfb[, "betadiet"]
+
+colnames(dfb)
+
+# Betaplots
+(
+  betaplot1 <- ggplot(data = data, aes(x=age, y=age.dfbeta)) + 
+    geom_point(size=1, alpha=0.8) + geom_vline(xintercept=mean(data$age),
+                                               color = "red") +
+    xlab("Age") + ylab(TeX("$df-\\beta_{age}$"))
+)
+(
+  betaplot2 <- ggplot(data = data, aes(x=quetelet, y=quetelet.dfbeta)) + 
+    geom_point(size=1, alpha=0.8) + 
+    geom_vline(xintercept=mean(data$quetelet), color = "red") + 
+    xlab("quetelet") + ylab(TeX("$df-\\beta_{quetelet}$"))
+)
+(
+  betaplot3 <- ggplot(data = data, aes(x=calories, y=calories.dfbeta)) + 
+    geom_point(size=1, alpha=0.8) + geom_vline(xintercept=mean(data$calories),
+                                               color = "red") +
+    xlab("calories") + ylab(TeX("$df-\\beta_{calories}$"))
+)
+(
+  betaplot4 <- ggplot(data = data, aes(x=fat, y=fat.dfbeta)) + 
+    geom_point(size=1, alpha=0.8) + geom_vline(xintercept=mean(data$fat),
+                                               color = "red") +
+    xlab("fat") + ylab(TeX("$df-\\beta_{fat}$"))
+)
+
+grid.arrange(grob=betaplot1, betaplot2, betaplot3, betaplot4,
+             top = textGrob("DF-betas",gp=gpar(fontsize=18,font=1)))
+
+if(overwrite.images.3){
+  ggsave(filename = "dfbetas1.png", path="./Images/Part 3/", 
+         grid.arrange(grob=betaplot1, betaplot2, betaplot3, betaplot4,
+                      top = textGrob("DF-betas",gp=gpar(fontsize=18,font=1))
+                      )
+         )
+}
+
+# The remaining categories
+(
+  betaplot5 <- ggplot(data = data, aes(x=fiber, y=fiber.dfbeta)) + 
+    geom_point(size=1) + geom_vline(xintercept=mean(data$fiber),
+                                    color = "red") +
+    xlab("fiber") + ylab(TeX("$df-\\beta_{fiber}$"))
+)
+(
+  betaplot6 <- ggplot(data = data, aes(x=alcohol, y=alcohol.dfbeta)) + 
+    geom_point(size=1)+ geom_vline(xintercept = mean(data$alcohol),
+                                   color = "red") +
+    xlab("alcohol") + ylab(TeX("$df-\\beta_{alcohol}$"))
+)
+(
+  betaplot7 <- ggplot(data = data, aes(x=cholesterol, y=cholesterol.dfbeta)) + 
+    geom_point(size=1) + geom_vline(xintercept=mean(data$cholesterol),
+                                    color = "red") +
+    xlab("cholesterol") + ylab(TeX("$df-\\beta_{cholesterol}$"))
+)
+(
+  betaplot8 <- ggplot(data = data, aes(x=betadiet, y=betadiet.dfbeta)) + 
+    geom_point(size=1) + geom_vline(xintercept=mean(data$betadiet),
+                                    color = "red") +
+    xlab("betadiet") + ylab(TeX("$df-\\beta_{betadiet}$"))
+)
+
+grid.arrange(grob=betaplot5, betaplot6, betaplot7, betaplot8,
+             top = textGrob("DF-betas",gp=gpar(fontsize=18,font=1)))
+
+if(overwrite.images.3){
+  ggsave(filename = "dfbetas2.png", path="./Images/Part 3/", 
+         grid.arrange(grob=betaplot5, betaplot6, betaplot7, betaplot8,
+                      top = textGrob("DF-betas",gp=gpar(fontsize=18,font=1))
+         )
+  )
+}
