@@ -4,7 +4,9 @@
 .RData
 Project.Rproj
 Projekt1.Rproj
-**/.png
+./Images/Part 1/**.png
+./Images/Part 2/**.png
+./Images/Part 3/**.png
 .DS_Store
 
 
