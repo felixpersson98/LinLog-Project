@@ -1,3 +1,6 @@
+# Constants
+save.images2 <- FALSE
+
 ##### Part A #####
 # Turning the categorical variables into factors
 data$sex <- factor(data$sex,
@@ -140,11 +143,11 @@ head(model4.log.full.pred)
 
 # Plot predictions vs data
 (
-  plot3.data <- ggplot(data = model4.log.full.pred, 
+  plot8.data <- ggplot(data = model4.log.full.pred, 
                       aes(x = age, y = log(betaplasma), color = sex)) + 
                geom_point(size = 2) + 
                geom_hline(yintercept = mean(log(data$betaplasma))) + 
-               xlab("Ålder") + ylab("Log(Betakaroten)") + 
+               xlab("age") + ylab("log(beta-carotene)") + 
                labs(title = "Age and log(beta-carotene)") +
                theme(text = element_text(size = 12)) +
                facet_grid(smokstat ~ relevel(bmicat, "Underweight"))
@@ -154,25 +157,26 @@ average_age <- mean(data$age) - minage
 
 # Add the fitted line to the data plot
 (
-  plot3.line <- plot3.data + 
+  plot8.line <- plot8.data + 
     geom_line(aes(y = fit), color = "blue", size = 1)
 )
 
 # Add confidence interval
 (
-  plot3.conf <- plot3.line + 
+  plot8.conf <- plot8.line + 
     geom_ribbon(aes(ymin = conf.lwr, ymax = conf.upr), alpha = 0.2)
 )
 
 # Add prediction interval
 (
- plot3.full <- plot3.conf + geom_line(aes(y = pred.lwr), color = "red", 
+ plot8.full <- plot8.conf + geom_line(aes(y = pred.lwr), color = "red", 
                                       linetype = "dashed", size = 1) + 
                geom_line(aes(y = pred.upr),  color = "red", linetype = "dashed",
                          size = 1)
 )
-ggsave(file="AgeVsLogBetaCaroteneSplit.png", path="./Images/Part 2/")
-
+if(save.images2) {
+  ggsave(file="AgeVsLogBetaCaroteneSplit.png", path="./Images/Part 2/")
+}
 # Beta estimates
 model4.log.full$coefficients
 
@@ -207,11 +211,11 @@ parametersFemale4 <- data.frame(
   "bmicat" = "Normal"
 )
 (
-  resultMale5 <- predict(model5.log.full, newdata = parametersMale, interval = "confidence")
+  resultMale5 <- predict(model5.log.full, newdata = parametersMale5, interval = "confidence")
 )
 
 (
-  resultFemale5 <- predict(model5.log.full, newdata = parametersFemale, interval = "confidence")
+  resultFemale5 <- predict(model5.log.full, newdata = parametersFemale5, interval = "confidence")
 )
 
 (
@@ -220,7 +224,6 @@ parametersFemale4 <- data.frame(
 (
   resultFemale4 <- predict(model4.log.full, newdata = parametersFemale4, interval = "confidence")
 )
-
 
 ## Part 5 ##
 
