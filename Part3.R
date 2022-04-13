@@ -1,5 +1,5 @@
 # For saving images
-save.images.3 <- TRUE
+save.images.3 <- FALSE
 
 ##### Part A #####
 # Model containing categorical BMI-values
@@ -44,8 +44,6 @@ if(save.images.3) {
 
 # Correlation matrix
 (correlation.mat <- cor(contx))
-
-# fat/calories and fat/cholesterol have covariance greater than 0.7
 
 # plot fat/calories and fat/cholesterol
 (
@@ -261,13 +259,15 @@ colnames(dfb)
   betaplot3 <- ggplot(data = data, aes(x=calories, y=calories.dfbeta)) + 
     geom_point(size=1, alpha=0.8) + geom_vline(xintercept=mean(data$calories),
                                                color = "red") +
-    xlab("calories") + ylab(TeX("$df-\\beta_{calories}$"))
+    xlab("calories") + ylab(TeX("$df-\\beta_{calories}$")) + labs(caption = 
+                                                                  " ")
 )
 (
   betaplot4 <- ggplot(data = data, aes(x=fat, y=fat.dfbeta)) + 
     geom_point(size=1, alpha=0.8) + geom_vline(xintercept=mean(data$fat),
                                                color = "red") +
-    xlab("fat") + ylab(TeX("$df-\\beta_{fat}$"))
+    xlab("fat") + ylab(TeX("$df-\\beta_{fat}$")) + 
+    labs(caption = "x = category average (red)")
 )
 
 grid.arrange(grob=betaplot1, betaplot2, betaplot3, betaplot4,
@@ -298,13 +298,15 @@ if(save.images.3){
   betaplot7 <- ggplot(data = data, aes(x=cholesterol, y=cholesterol.dfbeta)) + 
     geom_point(size=1) + geom_vline(xintercept=mean(data$cholesterol),
                                     color = "red") +
-    xlab("cholesterol") + ylab(TeX("$df-\\beta_{cholesterol}$"))
+    xlab("cholesterol") + ylab(TeX("$df-\\beta_{cholesterol}$")) + 
+    labs(caption = " ")
 )
 (
   betaplot8 <- ggplot(data = data, aes(x=betadiet, y=betadiet.dfbeta)) + 
     geom_point(size=1) + geom_vline(xintercept=mean(data$betadiet),
                                     color = "red") +
-    xlab("betadiet") + ylab(TeX("$df-\\beta_{betadiet}$"))
+    xlab("betadiet") + ylab(TeX("$df-\\beta_{betadiet}$")) + 
+    labs(caption = "x = category average (red)")
 )
 
 grid.arrange(grob=betaplot5, betaplot6, betaplot7, betaplot8,

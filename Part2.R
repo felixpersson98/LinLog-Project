@@ -1,5 +1,5 @@
 # Constants
-save.images2 <- TRUE
+save.images2 <- FALSE
 
 ##### Part A #####
 # Turning the categorical variables into factors
@@ -54,19 +54,13 @@ model4.log.full$coefficients
 (model4.log.full.fstat <- model4.log.full.sum$fstatistic)
 (qf(1 - 0.025, 7, 306, lower.tail=TRUE))
 
-### Partial F-test to test significance among categorical betas - C.2 ###
+### Partial F-test - C.2 ###
 (model2.log.model4.full.log.anova <- anova(model2.log, model4.log.full))
 
-# TODO - fixa kvantiler
+# Collect F-value, compute quantiles and p-value
 (Fvalue <- model2.log.model4.full.log.anova$F[2])
 (ref <- qf(1 - 0.025, 6, 306))
-
-
-# TODO - fixa kvantiler
-# Calculate P-value:
 (pf(Fvalue, 6, 306, lower.tail = FALSE))
-
-# --> Reject H0
 
 ### Global F-test - C.3 ###
 summary(model4.log.full)
@@ -76,7 +70,7 @@ confint(model4.log.full)
 model4.red.age <- lm(log(betaplasma) ~ sex + smokstat + bmicat, data = data)
 (model4.red.age.anova <- anova(model4.red.age, model4.log.full))
 
-# TODO - -11-
+# Collect F-value, compute quantiles and p-value
 (model4.red.age.fvalue <- model4.red.age.anova$F[2])
 (model4.red.age.ref <- qf(1 - 0.025, 1, 306))
 
@@ -85,24 +79,25 @@ model4.red.sex <- lm(log(betaplasma) ~ I(age - minage) + smokstat + bmicat,
                      data = data)
 (model4.red.sex.anova <- anova(model4.red.sex, model4.log.full))
 
-# TODO - -11-
+# Collect F-value, compute quantiles and p-value
 (model4.red.sex.fvalue <- model4.red.sex.anova$F[2])
 (model4.red.sex.ref <- qf(1 - 0.025, 6, 306))
 
-
+# Smoke status
 model4.red.smokstat <- lm(log(betaplasma) ~ I(age - minage) + sex + bmicat, 
                           data = data)
 (model4.red.smokstat.anova <- anova(model4.red.smokstat, model4.log.full))
 
-# TODO - -11-
+# Collect F-value, compute quantiles and p-value
 (model4.red.smokstat.fvalue <- model4.red.smokstat.anova$F[2])
 (model4.red.smokstat.ref <- qf(1 - 0.025, 2, 306))
 
+# BMI category
 model4.red.bmicat <- lm(log(betaplasma) ~ I(age - minage) + sex + smokstat, 
                         data = data)
 (model4.red.bmicat.anova <- anova(model4.red.bmicat, model4.log.full))
 
-# TODO - -11-
+# Collect F-value, compute quantiles and p-value
 (model4.red.bmicat.fvalue <- model4.red.bmicat.anova$F[2])
 (model4.red.bmicat.ref <- qf(1 - 0.05, 3, 306))
 
@@ -126,10 +121,9 @@ model4.log.full$coefficients
                                  "T-stat" = underweight.tstat,
                                  "Upper qt." = qt(1 - 0.05/2, 306)))
 
-# Pvalue:
+# P-value:
 # 2*P(|t| > |tvalue|) to cover both tails:
 2*pt(underweight.tstat, 306, lower.tail = FALSE)
-sum.full$coefficients["fertilize", "Pr(>|t|)"]
 
 ##### Part D #####
 # Make predictions with the new model
@@ -158,21 +152,21 @@ average_age <- mean(data$age) - minage
 # Add the fitted line to the data plot
 (
   plot8.line <- plot8.data + 
-    geom_line(aes(y = fit), color = "blue", size = 1)
+    geom_line(aes(y = fit, group=sex), size = 0.5)
 )
 
 # Add confidence interval
 (
-  plot8.conf <- plot8.line + 
-    geom_ribbon(aes(ymin = conf.lwr, ymax = conf.upr), alpha = 0.2)
+  plot8.conf <- plot8.data + 
+    geom_ribbon(aes(ymin = conf.lwr, ymax = conf.upr, group=sex), alpha = 0.2)
 )
 
 # Add prediction interval
 (
- plot8.full <- plot8.conf + geom_line(aes(y = pred.lwr), color = "red", 
-                                      linetype = "dashed", size = 1) + 
-               geom_line(aes(y = pred.upr),  color = "red", linetype = "dashed",
-                         size = 1)
+ plot8.full <- plot8.conf + geom_line(aes(y = pred.lwr, group=sex), 
+                                      linetype = "dashed", size = 0.5) + 
+               geom_line(aes(y = pred.upr, group=sex),  linetype = "dashed",
+                         size = 0.5)
 )
 if(save.images2) {
   ggsave(file="AgeVsLogBetaCaroteneSplit.png", path="./Images/Part 2/")

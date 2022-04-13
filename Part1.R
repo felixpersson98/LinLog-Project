@@ -8,7 +8,7 @@ library(tidyverse)
 library(latex2exp)
 
 # Constants
-save.images <- TRUE
+save.images <- FALSE
 
 # Read data file
 data <- read.delim(file = "Data/plasma.txt")
@@ -64,7 +64,8 @@ head(model1.linear.pred)
 # Add prediction interval
 (
   plot1.pred <- plot1.conf + geom_line(aes(y = pred.lwr),
-                                       color = "red", linetype = "dashed", size = 1) +
+                                       color = "red", linetype = "dashed", 
+                                       size = 1) +
     geom_line(aes(y = pred.upr), 
               color = "red", linetype = "dashed", size = 1)
 )
@@ -121,7 +122,8 @@ head(model2.log.pred)
 if(save.images) {
   ggsave(filename = "agevsbetacarotene.png", path="./Images/Part 1/", 
          grid.arrange(grob=plot1.pred, plot2.pred, ncol=2,
-                      top = textGrob("Predicted beta-carotene levels", gp=gpar(fontsize=18,font=1))
+                      top = textGrob("Predicted beta-carotene levels", 
+                                     gp=gpar(fontsize=18,font=1))
          )
   )
 }
