@@ -1,5 +1,5 @@
 # Constants
-save.images2 <- FALSE
+save.images2 <- TRUE
 
 ##### Part A #####
 # Turning the categorical variables into factors

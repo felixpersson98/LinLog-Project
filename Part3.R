@@ -1,6 +1,5 @@
-# Constants
+# For saving images
 save.images.3 <- TRUE
-
 
 ##### Part A #####
 # Model containing categorical BMI-values
