@@ -17,7 +17,7 @@ df$health_cat <- factor(df$health, levels = c(1, 2, 3), labels = c("good",
 table(df$health_cat, df$hosp)
 prop.table(table(df$health_cat, df$hosp_cat), margin = 1)
 
-# Relevel
+# Relevel good to the reference category
 df$health_cat <- relevel(df$health_cat, ref = "good")
 
 # Create binomial model
@@ -108,3 +108,35 @@ exp(confint(model3))
 
 
 ##### Part 2a #####
+
+df$sex_cat <- factor(df$sex, levels = c(1, 2), labels = c("male", "female"))
+df$civilst_cat <- factor(df$civilst, levels = c(1, 2, 3, 4), labels = 
+          c("unmarried", "married", "divorsed/separated", "widow/widower"))
+df$exercise_cat <- factor(df$exercise, levels = c(0, 1, 2, 3, 4), labels = 
+                        c("no exercise", 
+                        "exercises sometimes", 
+                        "exercises once a week", 
+                        "exercises twice a week", 
+                        "exercises > twice a week"))
+df$work_norm_cat <- factor(df$work_norm, levels = c(1, 2, 3, 4, 5), labels = 
+                             c("employed 1-19 hours", 
+                               "employed 20-34 hours", 
+                               "employed 35–97 hours", 
+                               "farmer or self-employed", 
+                               "other, does not work"))
+
+#Frequency tables
+table(df$sex_cat)
+table(df$civilst_cat)
+table(df$exercise_cat)
+table(df$work_norm_cat)
+
+#Choosing reference variables
+df$sex_cat <- relevel(df$sex_cat, ref = "female")
+df$civilst_cat <- relevel(df$civilst_cat, ref = "married")
+df$exercise_cat <- relevel(df$exercise_cat, ref = "exercises sometimes")
+df$work_norm_cat <- relevel(df$work_norm_cat, ref = "other, does not work")
+
+
+##### Part 2b #####
+
