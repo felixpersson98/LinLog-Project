@@ -85,3 +85,26 @@ exp(confint(model2))
 (AIC(model2))
 (BIC(model2))
 
+#Test the model
+
+
+##### Part 1c #####
+
+#Creating new model with square term
+model3 <- glm(hosp ~ age + I(age^2), family = "binomial", data = df)
+
+#calculating betas and their confidence intervals
+model3$coefficients
+confint(model3)
+exp(model3$coefficients)
+exp(confint(model3))
+
+# McFadden, AIC & BIC
+(1 - logLik(model3)/logLik(model.null))
+(AIC(model3))
+(BIC(model3))
+
+#Test the model
+
+
+##### Part 2a #####
