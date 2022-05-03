@@ -140,3 +140,47 @@ df$work_norm_cat <- relevel(df$work_norm_cat, ref = "other, does not work")
 
 ##### Part 2b #####
 
+#Plot
+
+##### Part 2c #####
+
+#New model including categorical variables
+model4 <- glm(hosp ~ age + I(age^2) + sex_cat + civilst_cat + exercise_cat +
+             work_norm_cat + inc_hh + inc_tot, family = "binomial", data = df)
+
+# McFadden, AIC & BIC
+(1 - logLik(model4)/logLik(model.null))
+(AIC(model4))
+(BIC(model4))
+
+#Removing one variable at a time for testing
+model4.age <- update(model4, . ~ . -age -I(age^2))
+model4.sex <- update(model4, . ~ . -sex_cat)
+model4.civist <- update(model4, . ~ . -civilst_cat)
+model4.exercise <- update(model4, . ~ . -exercise_cat)
+model4.work_norm <- update(model4, . ~ . -work_norm_cat)
+model.inc_hh <- update(model4, . ~ . -inc_hh)
+model.inc_tot <- update(model4, . ~ . -inc_tot)
+
+
+##### Part 2d #####
+
+##### Part 2e #####
+
+##### Part 3a #####
+
+##### Part 3b #####
+
+##### Part 3c #####
+
+##### Part 3d #####
+
+##### Part 4a #####
+
+##### Part 4b #####
+
+##### Part 4c #####
+
+##### Part 4d #####
+
+##### Part 4e #####
