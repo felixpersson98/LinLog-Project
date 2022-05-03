@@ -6,22 +6,22 @@ library(ggplot2)
 df <- read.delim("Data/hospital.txt", sep=";")
 head(df)
 
-# Use factors for hospital and health cateogory
-df$hosp <- factor(df$hosp, levels = c(0, 1),
+# Use factors for hospital and health category
+df$hosp_cat <- factor(df$hosp, levels = c(0, 1),
                       labels = c("0 days", "1+ days"))
 
-df$health <- factor(df$health, levels = c (1, 2, 3), labels = c("good", "bad",
+df$health_cat <- factor(df$health, levels = c (1, 2, 3), labels = c("good", "bad",
                                                                 "between"))
 
 # Frequency and proportion table
-table(df$health, df$hosp)
-prop.table(table(df$health, df$hosp), margin = 1)
+table(df$health_cat, df$hosp)
+prop.table(table(df$health_cat, df$hosp_cat), margin = 1)
 
 # Relevel
-df$health <- relevel(df$health, ref="good")
+df$health_cat <- relevel(df$health_cat, ref="good")
 
 # Create binomial model
-model1.glm <- glm(hosp ~ health, family = "binomial", data = df)
+model1.glm <- glm(hosp ~ health_cat, family = "binomial", data = df)
 summary(model1.glm)
 
 # Log odds + odds
