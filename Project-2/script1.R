@@ -178,7 +178,32 @@ ggplot(df, aes(work_norm_cat, age)) +
   xlab("working hours") +
   ylab("age") +
   theme(text = element_text(size = 14))
-  
+
+#calculating betas and their confidence intervals
+model5$coefficients
+confint(model5)
+exp(model5$coefficients)
+exp(confint(model5))
+
+# McFadden, AIC & BIC
+(1 - logLik(model5)/logLik(model.null))
+(AIC(model5))
+(BIC(model5))
+
+#Test against the null model
+(sum.model5 <- summary(model5))
+(model5.dd <- sum.model5$null.deviance - sum.model5$deviance)
+(model5.df_diff <- sum.model5$df.null - sum.model5$df.residual)
+
+# compare with Null model using the anova funktion:
+(anova.2d <- anova(model.null, model5))
+(D_diff <- anova.2d$Deviance[2])
+(df_diff <- anova.2d$Df[2])
+
+#chi2-quantile to compare D_diff with:
+qchisq(1 - 0.05, df_diff)
+# or P-value:
+pchisq(D_diff, df_diff, lower.tail = FALSE)
 
 ##### Part 2e #####
 
