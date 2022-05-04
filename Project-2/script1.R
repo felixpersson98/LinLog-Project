@@ -164,6 +164,21 @@ model.inc_tot <- update(model4, . ~ . -inc_tot)
 
 
 ##### Part 2d #####
+# Stepwise selection
+# starting with null model
+model5 <- step(model.null, 
+     scope = list(lower = model.null, upper = model4),
+     direction = "both",
+     k = 2)
+
+#What happens to work_norm?
+#Boxplot of work_norm against age
+ggplot(df, aes(work_norm_cat, age)) +
+  geom_boxplot() +
+  xlab("working hours") +
+  ylab("age") +
+  theme(text = element_text(size = 14))
+  
 
 ##### Part 2e #####
 
