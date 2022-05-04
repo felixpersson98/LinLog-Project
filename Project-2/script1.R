@@ -32,8 +32,8 @@ model1.glm$coefficients
 (model1.glm.or <- exp(model1.glm$coefficients))
 
 # McFadden, AIC, BIC
-model.null <- glm(hosp ~ 1, family = "binomial", data = df)
-(1 - logLik(model1.glm)/logLik(model.null))
+model0.null <- glm(hosp ~ 1, family = "binomial", data = df)
+(1 - logLik(model1.glm)/logLik(model0.null))
 (AIC(model1.glm))
 (BIC(model1.glm))
 
@@ -44,7 +44,7 @@ model.null <- glm(hosp ~ 1, family = "binomial", data = df)
 (model1.glm.df_diff <- sum.model1.glm$df.null - sum.model1.glm$df.residual)
 
 # compare with Null model using the anova funktion:
-(anova.1a <- anova(model.null, model1.glm))
+(anova.1a <- anova(model0.null, model1.glm))
 (D_diff <- anova.1a$Deviance[2])
 (df_diff <- anova.1a$Df[2])
 
@@ -81,7 +81,7 @@ exp(model2$coefficients)
 exp(confint(model2))
 
 # McFadden, AIC & BIC
-(1 - logLik(model2)/logLik(model.null))
+(1 - logLik(model2)/logLik(model0.null))
 (AIC(model2))
 (BIC(model2))
 
@@ -100,7 +100,7 @@ exp(model3$coefficients)
 exp(confint(model3))
 
 # McFadden, AIC & BIC
-(1 - logLik(model3)/logLik(model.null))
+(1 - logLik(model3)/logLik(model0.null))
 (AIC(model3))
 (BIC(model3))
 
@@ -144,30 +144,30 @@ df$work_norm_cat <- relevel(df$work_norm_cat, ref = "other, does not work")
 
 ##### Part 2c #####
 
-#New model including categorical variables
-model4 <- glm(hosp ~ age + I(age^2) + sex_cat + civilst_cat + exercise_cat +
+#Creating the full model, including categorical variables
+model4.full <- glm(hosp ~ age + I(age^2) + sex_cat + civilst_cat + exercise_cat +
              work_norm_cat + inc_hh + inc_tot, family = "binomial", data = df)
 
 # McFadden, AIC & BIC
-(1 - logLik(model4)/logLik(model.null))
-(AIC(model4))
-(BIC(model4))
+(1 - logLik(model4.full)/logLik(model0.null))
+(AIC(model4.full))
+(BIC(model4.full))
 
 #Removing one variable at a time for testing
-model4.age <- update(model4, . ~ . -age -I(age^2))
-model4.sex <- update(model4, . ~ . -sex_cat)
-model4.civist <- update(model4, . ~ . -civilst_cat)
-model4.exercise <- update(model4, . ~ . -exercise_cat)
-model4.work_norm <- update(model4, . ~ . -work_norm_cat)
-model.inc_hh <- update(model4, . ~ . -inc_hh)
-model.inc_tot <- update(model4, . ~ . -inc_tot)
+model4.full.age <- update(model4.full, . ~ . -age -I(age^2))
+model4.full.sex <- update(model4.full, . ~ . -sex_cat)
+model4.full.civist <- update(model4.full, . ~ . -civilst_cat)
+model4.full.exercise <- update(model4.full, . ~ . -exercise_cat)
+model4.full.work_norm <- update(model4.full, . ~ . -work_norm_cat)
+model.inc_hh <- update(model4.full, . ~ . -inc_hh)
+model.inc_tot <- update(model4.full, . ~ . -inc_tot)
 
 
 ##### Part 2d #####
-# Stepwise selection
+# Stepwise AIC selection
 # starting with null model
-model5 <- step(model.null, 
-     scope = list(lower = model.null, upper = model4),
+model5.aic <- step(model0.null, 
+     scope = list(lower = model0.null, upper = model4.full),
      direction = "both",
      k = 2)
 
@@ -180,32 +180,42 @@ ggplot(df, aes(work_norm_cat, age)) +
   theme(text = element_text(size = 14))
 
 #calculating betas and their confidence intervals
-model5$coefficients
-confint(model5)
-exp(model5$coefficients)
-exp(confint(model5))
+model5.aic$coefficients
+confint(model5.aic)
+exp(model5.aic$coefficients)
+exp(confint(model5.aic))
 
 # McFadden, AIC & BIC
-(1 - logLik(model5)/logLik(model.null))
-(AIC(model5))
-(BIC(model5))
+(1 - logLik(model5.aic)/logLik(model0.null))
+(AIC(model5.aic))
+(BIC(model5.aic))
 
-#Test against the null model
-(sum.model5 <- summary(model5))
-(model5.dd <- sum.model5$null.deviance - sum.model5$deviance)
-(model5.df_diff <- sum.model5$df.null - sum.model5$df.residual)
+#Test against the full model
+#Partial likelihood test?
 
-# compare with Null model using the anova funktion:
-(anova.2d <- anova(model.null, model5))
-(D_diff <- anova.2d$Deviance[2])
-(df_diff <- anova.2d$Df[2])
 
-#chi2-quantile to compare D_diff with:
-qchisq(1 - 0.05, df_diff)
-# or P-value:
-pchisq(D_diff, df_diff, lower.tail = FALSE)
 
 ##### Part 2e #####
+# Stepwise BIC selection
+# starting with null model
+model6.bic <- step(model0.null, 
+               scope = list(lower = model0.null, upper = model4.full),
+               direction = "both",
+               k = log(nrow(df)))
+
+#calculating betas and their confidence intervals
+model6.bic$coefficients
+confint(model6.bic)
+exp(model6.bic$coefficients)
+exp(confint(model6.bic))
+
+# McFadden, AIC & BIC
+(1 - logLik(model6.bic)/logLik(model0.null))
+(AIC(model6.bic))
+(BIC(model6.bic))
+
+
+
 
 ##### Part 3a #####
 
