@@ -125,10 +125,11 @@ exp(confint(model2))
 (BIC(model2))
 
 # Wald's test for the age variable
-summary(model2)$coefficients
+(wald1b <- data.frame(summary(model2)$coefficients))
 
 # Compute change in odds for the age changes
 (beta2 <- model2$coefficients[2])
+(beta2.se <- wald1b[2, "Std..Error"])
 age.changes <- cbind(1, 5)
 
 # Changes
@@ -136,13 +137,54 @@ age.changes <- cbind(1, 5)
 (odds.logchange <- (beta2 * age.changes)) # Log chanage
 (odds.change <- exp(beta2)^age.changes) # Change
 (odds.logci <- data.frame(
-  "Lwr" = 0,
-  "Upr" = 0
+  "Lwr" = exp(beta2 - lambda * beta2.se)^age.changes ,
+  "Upr" = exp(beta2 + lambda * beta2.se)^age.changes
   )
 )
 
-##### Part 1c #####
+# Plot age predictions for age model
+df.pred <- cbind(
+  df,
+  phat = predict(model2, type = "response")
+)
 
+df.pred <- cbind(
+  df.pred,
+  logit = predict(model2, se.fit = TRUE))
+
+# Assert redundant variable to null
+df.pred$logit.residual.scale <- NULL
+
+# CI for log-odds
+(lambda <- qnorm(1 - 0.05/2))
+df.pred$logit.lwr <- df.pred$logit.fit - lambda * df.pred$logit.se.fit
+df.pred$logit.upr <- df.pred$logit.fit + lambda * df.pred$logit.se.fit
+head(df.pred)
+
+# Transform the log-odds intervals into C.I. for odds
+df.pred$odds.lwr <- exp(df.pred$logit.lwr)
+df.pred$odds.upr <- exp(df.pred$logit.upr)
+head(df.pred)
+
+# Transform the odds intervals into C.I. for p
+df.pred$p.lwr <- df.pred$odds.lwr/(1 + df.pred$odds.lwr)
+df.pred$p.upr <- df.pred$odds.upr/(1 + df.pred$odds.upr)
+head(df.pred)
+
+ggplot(df.pred, aes(age, hosp)) +
+  geom_point() +
+  geom_line(aes(y = phat), color = "red", size = 1) +
+  geom_ribbon(aes(ymin = p.lwr, ymax = p.upr), alpha = 0.2) +
+  xlab("Age") +
+  ylab("In hospital for 1 + days") +
+  labs(title = "1+ hospital days (=1) or No hospital days (=0) vs age with C.I")
+  + theme(text = element_text(size = 14), plot.title = element_text(size=20))
+
+# Save
+if (SAVE.IMAGES) ggsave(filename = "1b2.png",
+                        path="./Images/Part 1/")
+
+##### Part 1c #####
 #Creating new model with square term
 model3 <- glm(hosp ~ age + I(age^2), family = "binomial", data = df)
 
