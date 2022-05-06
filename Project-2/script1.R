@@ -2,6 +2,9 @@
 ### Imports ###
 library(ggplot2)
 
+### Constants ###
+SAVE.IMAGES <- TRUE
+
 # Load data
 df <- read.delim("Data/hospital.txt", sep = ";")
 head(df)
@@ -12,6 +15,9 @@ df$hosp_cat <- factor(df$hosp, levels = c(0, 1),
 
 df$health_cat <- factor(df$health, levels = c(1, 2, 3), labels = c("good", 
                                                           "bad", "between"))
+
+# Create dataset to modify
+df2 <- data.frame(df)
 
 # Frequency and proportion table
 table(df$health_cat, df$hosp)
@@ -37,13 +43,12 @@ model0.null <- glm(hosp ~ 1, family = "binomial", data = df)
 (AIC(model1.glm))
 (BIC(model1.glm))
 
-### Från föreläsningar
 # Test the model against the null model
 (sum.model1.glm <- summary(model1.glm))
 (model1.glm.dd <- sum.model1.glm$null.deviance - sum.model1.glm$deviance)
 (model1.glm.df_diff <- sum.model1.glm$df.null - sum.model1.glm$df.residual)
 
-# compare with Null model using the anova funktion:
+# Compare with Null model using the anova funktion:
 (anova.1a <- anova(model0.null, model1.glm))
 (D_diff <- anova.1a$Deviance[2])
 (df_diff <- anova.1a$Df[2])
@@ -58,11 +63,41 @@ pchisq(D_diff, df_diff, lower.tail = FALSE)
 # confidence intervals. Compare with the proportions calculated from the 
 # cross-tabulation.
 
+df.pred <- cbind(
+  df,
+  phat = predict(model1.glm, type = "response")
+)
 
+df.pred <- cbind(
+  df.pred,
+  logit = predict(model1.glm, se.fit = TRUE))
 
-##### Part 1b #####
+# Assert redundant variable to null
+df.pred$logit.residual.scale <- NULL
 
-#Plotting hosp against age, with moving average
+# CI for log-odds
+(lambda <- qnorm(1 - 0.05/2))
+df.pred$logit.lwr <- df.pred$logit.fit - lambda * df.pred$logit.se.fit
+df.pred$logit.upr <- df.pred$logit.fit + lambda*df.pred$logit.se.fit
+head(df.pred)
+
+# Transform the log-odds intervals into C.I. for odds
+df.pred$odds.lwr <- exp(df.pred$logit.lwr)
+df.pred$odds.upr <- exp(df.pred$logit.upr)
+head(df.pred)
+
+# Transform the odds intervals into C.I. for p
+df.pred$p.lwr <- df.pred$odds.lwr/(1 + df.pred$odds.lwr)
+df.pred$p.upr <- df.pred$odds.upr/(1 + df.pred$odds.upr)
+head(df.pred)
+
+# Print health status, probability, and C.Is
+head(unique(df.pred[c("health_cat", "phat", "p.lwr", "p.upr")]))
+
+df <- df2
+
+##### ---------- Part 1b ---------- #####
+# Plotting hosp against age, with moving average
 ggplot(df, aes(age, hosp)) +
   geom_point(size = 1) +
   geom_smooth(se = FALSE, linetype = "dashed") +
@@ -72,8 +107,12 @@ ggplot(df, aes(age, hosp)) +
        caption = "blue dashed = moving average") +
   theme(text = element_text(size = 14))
 
-#Creating a simple logaritmic model and calculating betas and their confidence 
-#intervals
+# Save
+if (SAVE.IMAGES) ggsave(filename = "1b1.png",
+                        path="./Images/Part 1/")
+
+# Creating a simple logaritmic model and calculating betas and their confidence 
+# intervals
 model2 <- glm(hosp ~ I(age), family = "binomial", data = df)
 model2$coefficients
 confint(model2)
@@ -85,8 +124,22 @@ exp(confint(model2))
 (AIC(model2))
 (BIC(model2))
 
-#Test the model
+# Wald's test for the age variable
+summary(model2)$coefficients
 
+# Compute change in odds for the age changes
+(beta2 <- model2$coefficients[2])
+age.changes <- cbind(1, 5)
+
+# Changes
+(lambda <- qnorm(1 - 0.05/2))
+(odds.logchange <- (beta2 * age.changes)) # Log chanage
+(odds.change <- exp(beta2)^age.changes) # Change
+(odds.logci <- data.frame(
+  "Lwr" = 0,
+  "Upr" = 0
+  )
+)
 
 ##### Part 1c #####
 
