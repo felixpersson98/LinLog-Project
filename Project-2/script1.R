@@ -199,14 +199,78 @@ exp(confint(model3))
 (AIC(model3))
 (BIC(model3))
 
-#Test the model
+# Test the model
+summary(model3)
 
+# Plot age predictions for age + age^2 model and put in comparison with the
+# predictions from the age model
+df.pred2 <- cbind(
+  df,
+  phat = predict(model3, type = "response")
+)
+
+df.pred2 <- cbind(
+  df.pred2,
+  logit = predict(model3, se.fit = TRUE))
+
+# Assert redundant variable to null
+df.pred2$logit.residual.scale <- NULL
+
+# CI for log-odds
+(lambda <- qnorm(1 - 0.05/2))
+df.pred2$logit.lwr <- df.pred2$logit.fit - lambda * df.pred2$logit.se.fit
+df.pred2$logit.upr <- df.pred2$logit.fit + lambda * df.pred2$logit.se.fit
+head(df.pred2)
+
+# Transform the log-odds intervals into C.I. for odds
+df.pred2$odds.lwr <- exp(df.pred2$logit.lwr)
+df.pred2$odds.upr <- exp(df.pred2$logit.upr)
+head(df.pred2)
+
+# Transform the odds intervals into C.I. for p
+df.pred2$p.lwr <- df.pred2$odds.lwr/(1 + df.pred2$odds.lwr)
+df.pred2$p.upr <- df.pred2$odds.upr/(1 + df.pred2$odds.upr)
+head(df.pred2)
+
+# Insert in original dataframe
+df.pred$p2.lwr <- df.pred2$p.lwr
+df.pred$p2.upr <- df.pred2$p.upr
+df.pred$phat2 <- df.pred2$phat
+
+ggplot(df.pred, aes(age, hosp)) +
+  geom_point() +
+  geom_line(aes(y = phat), color = "red", size = 1) +
+  geom_ribbon(aes(ymin = p.lwr, ymax = p.upr), alpha = 0.2) +
+  geom_line(aes(y = phat2), color = "blue", size = 1) +
+  geom_ribbon(aes(ymin = p2.lwr, ymax = p2.upr), alpha = 0.2) +
+  xlab("Age") +
+  ylab("In hospital for 1 + days") +
+  labs(title = "1+ hospital days (=1) or No hospital days (=0) vs age with C.I",
+       caption="Red line = age model, blue line = age + age squared model")
++ theme(text = element_text(size = 14), plot.title = element_text(size=20))
+
+# Save
+if (SAVE.IMAGES) ggsave(filename = "1c1.png",
+                        path="./Images/Part 1/")
+
+# Compute odds ratios
+model3$coefficients
+age.changes <- cbind(50, 75, 100)
+(model3.beta.age <- model3$coefficients[2])
+(model3.beta.age2 <- model3$coefficients[3])
+(
+  model3.odds.ratios <- 
+    exp(model3.beta.age + model3.beta.age2 * (2*age.changes + 1))
+)
+
+(beta2.se <- wald1b[2, "Std..Error"])
+age.changes <- cbind(1, 5)
 
 ##### Part 2a #####
 
 df$sex_cat <- factor(df$sex, levels = c(1, 2), labels = c("male", "female"))
 df$civilst_cat <- factor(df$civilst, levels = c(1, 2, 3, 4), labels = 
-          c("unmarried", "married", "divorsed/separated", "widow/widower"))
+          c("unmarried", "married", "divorced/separated", "widow/widower"))
 df$exercise_cat <- factor(df$exercise, levels = c(0, 1, 2, 3, 4), labels = 
                         c("no exercise", 
                         "exercises sometimes", 
