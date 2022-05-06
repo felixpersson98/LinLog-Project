@@ -1,6 +1,7 @@
 ##### Part 1a #####
 ### Imports ###
 library(ggplot2)
+library(GGally)
 
 ### Constants ###
 SAVE.IMAGES <- TRUE
@@ -267,10 +268,11 @@ age.changes <- cbind(50, 75, 100)
 age.changes <- cbind(1, 5)
 
 ##### Part 2a #####
+df <- df2
 
 df$sex_cat <- factor(df$sex, levels = c(1, 2), labels = c("male", "female"))
 df$civilst_cat <- factor(df$civilst, levels = c(1, 2, 3, 4), labels = 
-          c("unmarried", "married", "divorced/separated", "widow/widower"))
+          c("unmarried", "married", "divorsed/separated", "widow/widower"))
 df$exercise_cat <- factor(df$exercise, levels = c(0, 1, 2, 3, 4), labels = 
                         c("no exercise", 
                         "exercises sometimes", 
@@ -296,14 +298,25 @@ df$civilst_cat <- relevel(df$civilst_cat, ref = "married")
 df$exercise_cat <- relevel(df$exercise_cat, ref = "exercises sometimes")
 df$work_norm_cat <- relevel(df$work_norm_cat, ref = "other, does not work")
 
-
 ##### Part 2b #####
+# Creating data frame with all continuous variables
+contx <- df[, c("age", "inc_hh", "inc_tot")]
 
-#Plot
+
+# Plot each category against each other
+ggpairs(data=contx, upper = list(continuous = wrap("cor", size = 3)),
+        lower = list(continuous = wrap("points", alpha = 0.3,    size=0.2))) +
+  theme(
+    text = element_text(size = 14), 
+    axis.text.x = element_text(angle =45, hjust = 1),
+    axis.text.y = element_text(size=9)
+  )
+if(SAVE.IMAGES) ggsave(filename = "2b.png", 
+                       path="./Images/Part 2/")
 
 ##### Part 2c #####
 
-#Creating the full model, including categorical variables
+# Creating the full model, including categorical variables
 model4.full <- glm(hosp ~ age + I(age^2) + sex_cat + civilst_cat + exercise_cat +
              work_norm_cat + inc_hh + inc_tot, family = "binomial", data = df)
 
@@ -312,15 +325,79 @@ model4.full <- glm(hosp ~ age + I(age^2) + sex_cat + civilst_cat + exercise_cat 
 (AIC(model4.full))
 (BIC(model4.full))
 
-#Removing one variable at a time for testing
-model4.full.age <- update(model4.full, . ~ . -age -I(age^2))
-model4.full.sex <- update(model4.full, . ~ . -sex_cat)
-model4.full.civist <- update(model4.full, . ~ . -civilst_cat)
-model4.full.exercise <- update(model4.full, . ~ . -exercise_cat)
-model4.full.work_norm <- update(model4.full, . ~ . -work_norm_cat)
-model.inc_hh <- update(model4.full, . ~ . -inc_hh)
-model.inc_tot <- update(model4.full, . ~ . -inc_tot)
+# Removing one variable at a time for testing
+(sum.model4.full <- summary(model4.full))
 
+# Partial Likelihood ratio test for nested model without age variable
+model4.age <- update(model4.full, . ~ . -age -I(age^2))
+
+(anova.age <- anova(model4.age, model4.full))
+(age.D_diff <- anova.age$Deviance[2])
+(age.df_diff <- anova.age$Df[2])
+
+# chi2-quantile to compare D_diff with:
+qchisq(1 - 0.05, age.df_diff)
+# or P-value:
+pchisq(age.D_diff, age.df_diff, lower.tail = FALSE)
+
+####### ---------------------------
+
+# Partial Likelihood ratio test
+model4.sex <- update(model4.full, . ~ . -sex_cat)
+
+(anova.sex <- anova(model4.sex, model4.full))
+(sex.D_diff <- anova.sex$Deviance[2])
+(sex.df_diff <- anova.age$Df[2])
+
+# chi2-quantile to compare D_diff with:
+qchisq(1 - 0.05, sex.df_diff)
+# or P-value:
+pchisq(sex.D_diff, sex.df_diff, lower.tail = FALSE)
+
+####### ---------------------------
+
+# Partial Likelihood ratio test
+model4.civist <- update(model4.full, . ~ . -civilst_cat)
+
+(anova.civist <- anova(model4.civist, model4.full))
+(civist.D_diff <- anova.civist$Deviance[2])
+(civist.df_diff <- anova.civist$Df[2])
+
+# chi2-quantile to compare D_diff with:
+qchisq(1 - 0.05, civist.df_diff)
+# or P-value:
+pchisq(civist.D_diff, civist.df_diff, lower.tail = FALSE)
+
+####### ---------------------------
+
+# Partial Likelihood ratio test
+model4.exercise <- update(model4.full, . ~ . -exercise_cat)
+
+(anova.exercise <- anova(model4.exercise, model4.full))
+(exercise.D_diff <- anova.exercise$Deviance[2])
+(exercise.df_diff <- anova.exercise$Df[2])
+
+#chi2-quantile to compare D_diff with:
+qchisq(1 - 0.05, exercise.df_diff)
+# or P-value:
+pchisq(exercise.D_diff, exercise.df_diff, lower.tail = FALSE)
+
+####### ---------------------------
+
+# Partial Likelihood ratio test
+model4.work_norm <- update(model4.full, . ~ . -work_norm_cat)
+(anova.work_norm <- anova(model4.work_norm, model4.full))
+(work_norm.D_diff <- anova.work_norm$Deviance[2])
+(work_norm.df_diff <- anova.work_norm$Df[2])
+
+#chi2-quantile to compare D_diff with:
+qchisq(1 - 0.05, work_norm.df_diff)
+# or P-value:
+pchisq(work_norm.D_diff, work_norm.df_diff, lower.tail = FALSE)
+
+# Wald's test
+wald.inc_hh.inc_tot <- summary(model4.full)
+wald.inc_hh.inc_tot$coefficients
 
 ##### Part 2d #####
 # Stepwise AIC selection
