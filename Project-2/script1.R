@@ -497,9 +497,27 @@ pchisq(bic.aic.D_diff, bic.aic.df_diff, lower.tail = FALSE)
 
 #Relevel health, bad health = reference category
 df$health_cat <- relevel(df$health_cat, ref = "bad")
-# Stepwise BIC selection with bad health as reference
-# starting with null model
-model6.bic <- glm()
+model6.bic.releveled <- glm(hosp ~ age + I(age^2) + health_cat + sex_cat, 
+                            family = "binomial", data = df)
+summary(model6.bic.releveled)
+
+# Use factors for health category
+df$health_new <- factor(df$health, levels = c(1, 2, 3),
+                      labels = c("Good", "Non-good", "Non-good"))
+
+model7.bic.health <- glm(hosp ~ age + I(age^2) + health_new + sex_cat, 
+                            family = "binomial", data = df)
+
+#calculating betas and their confidence intervals
+model7.bic.health$coefficients
+confint(model7.bic.health)
+exp(model7.bic.health$coefficients)
+exp(confint(model7.bic.health))
+
+# McFadden, AIC & BIC
+(1 - logLik(model7.bic.health)/logLik(model0.null))
+(AIC(model7.bic.health))
+(BIC(model7.bic.health))
 
 
 ##### Part 3a #####
