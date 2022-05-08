@@ -178,8 +178,8 @@ ggplot(df.pred, aes(age, hosp)) +
   geom_ribbon(aes(ymin = p.lwr, ymax = p.upr), alpha = 0.2) +
   xlab("Age") +
   ylab("In hospital for 1 + days") +
-  labs(title = "1+ hospital days (=1) or No hospital days (=0) vs age with C.I")
-  + theme(text = element_text(size = 14), plot.title = element_text(size=20))
+  labs(title = "1+ hospital days (=1) or No hospital days (=0) vs age with C.I") +
+  theme(text = element_text(size = 14), plot.title = element_text(size=20))
 
 # Save
 if (SAVE.IMAGES) ggsave(filename = "1b2.png",
@@ -247,8 +247,8 @@ ggplot(df.pred, aes(age, hosp)) +
   xlab("Age") +
   ylab("In hospital for 1 + days") +
   labs(title = "1+ hospital days (=1) or No hospital days (=0) vs age with C.I",
-       caption="Red line = age model, blue line = age + age squared model")
-+ theme(text = element_text(size = 14), plot.title = element_text(size=20))
+       caption="Red line = age model, blue line = age + age squared model") + 
+  theme(text = element_text(size = 14), plot.title = element_text(size=20))
 
 # Save
 if (SAVE.IMAGES) ggsave(filename = "1c1.png",
@@ -495,6 +495,10 @@ qchisq(1 - 0.05, bic.aic.df_diff)
 # or P-value:
 pchisq(bic.aic.D_diff, bic.aic.df_diff, lower.tail = FALSE)
 
+#Plot predicted probabilities
+
+
+
 #Relevel health, bad health = reference category
 df$health_cat <- relevel(df$health_cat, ref = "bad")
 model6.bic.releveled <- glm(hosp ~ age + I(age^2) + health_cat + sex_cat, 
@@ -505,35 +509,157 @@ summary(model6.bic.releveled)
 df$health_new <- factor(df$health, levels = c(1, 2, 3),
                       labels = c("Good", "Non-good", "Non-good"))
 
-model7.bic.health <- glm(hosp ~ age + I(age^2) + health_new + sex_cat, 
+model7.health <- glm(hosp ~ age + I(age^2) + health_new + sex_cat, 
                             family = "binomial", data = df)
 
 #calculating betas and their confidence intervals
-model7.bic.health$coefficients
-confint(model7.bic.health)
-exp(model7.bic.health$coefficients)
-exp(confint(model7.bic.health))
+model7.health$coefficients
+confint(model7.health)
+exp(model7.health$coefficients)
+exp(confint(model7.health))
 
 # McFadden, AIC & BIC
-(1 - logLik(model7.bic.health)/logLik(model0.null))
-(AIC(model7.bic.health))
-(BIC(model7.bic.health))
+(1 - logLik(model7.health)/logLik(model0.null))
+(AIC(model7.health))
+(BIC(model7.health))
 
 
 ##### Part 3a #####
 
-#Calculate predicted probabilities
-#Plot predicted probabilities
+#Plotting leverage against age for all combinations of sex and health status
+model7.health.pred <- cbind(df,
+                   xb = predict(model7.health),
+                   v = influence(model7.health)$hat)
+head(model7.health.pred)
 
+(plot.v <- ggplot(model7.health.pred, aes(age, v, color = hosp_cat)) + 
+    geom_point() +
+    geom_hline(yintercept = 2*length(model7.health$coefficients)/nrow(df), 
+               color = "red", size = 1) +
+    facet_grid(rows = vars(sex_cat), cols = vars(health_new)) +
+    labs(title = "Leverage vs age, by sex and health status",
+         caption = "2(p+1)/n in red") +
+    theme(text = element_text(size = 14)))
 
+#Highlighting the highest leverage
+I.highv <- which(model7.health.pred$v > 0.007)
+plot.v +
+  geom_point(data = model7.health.pred[I.highv, ], size = 3, 
+             color = "red", shape = 24)
 
 
 
 ##### Part 3b #####
 
+#Standardised deviance residuals
+model7.health.pred$devres <- influence(model7.health)$dev.res
+model7.health.pred$devstd <- model7.health.pred$devres/
+  sqrt(1 - model7.health.pred$v)
+head(model7.health.pred)
+
+ggplot(model7.health.pred, aes(xb, devstd, color = as.factor(hosp_cat))) +
+  geom_point() +
+  geom_hline(yintercept = 0) +
+  geom_hline(yintercept = c(-2, 2), linetype = "dashed", size = 1) +
+  geom_hline(yintercept = c(-3, 3), linetype = "dotted", size = 1) +
+  labs(title = "Standardized deviance residuals vs linear predictor",
+       color = "hospital days") +
+  theme(text = element_text(size = 14)) +
+  geom_point(data = model7.health.pred[I.highv, ], size = 3, 
+             color = "red", shape = 24)
+
+
 ##### Part 3c #####
 
+# Cook's distance####
+model7.health.pred$Dcook <- cooks.distance(model7.health)
+head(model7.health.pred)
+
+# Plot Cook's distance, highlighting the highest
+I.highDcook <- which(model7.health.pred$Dcook > 0.008)
+ggplot(model7.health.pred, aes(xb, Dcook, color = as.factor(hosp_cat))) +
+  geom_point() +
+  geom_point(data = model7.health.pred[I.highDcook, ], size = 3, 
+             color = "black", shape = 24) +
+  geom_point(data = model7.health.pred[I.highv, ], color = "red",
+             shape = 24, size = 3) +
+  geom_hline(yintercept = 4/nrow(df), linetype = "dotted",
+             size = 1) +
+  labs(title = "Cook's distance vs linear predictor, by sex and health status",
+       color = "Y", 
+       caption = "4/n in black, high leverage red triangle, 
+       high Cook black triangle") +
+  theme(text = element_text(size = 14)) +
+  facet_grid(rows = vars(health_new), cols = vars(sex_cat))
+  
+
 ##### Part 3d #####
+
+  #Saving DFBETAS
+  model7.health.dfbetas <- dfbetas(model7.health)
+  model7.health.pred$dfintercept <- model7.health.dfbetas[, "(Intercept)"]
+  model7.health.pred$dfage <- model7.health.dfbetas[, "age"]
+  model7.health.pred$dfage2 <- model7.health.dfbetas[, "I(age^2)"]
+  model7.health.pred$dfnongoodhealth <- 
+    model7.health.dfbetas[, "health_newNon-good"]
+  model7.health.pred$dfmale <- model7.health.dfbetas[, "sex_catmale"]
+  
+  #plotting DFBETAS
+  #Intercept
+  ggplot(model7.health.pred, aes(age, dfintercept, color = as.factor(hosp_cat))) +
+    geom_point() +
+    geom_point(data = model7.health.pred[I.highv, ], size = 3, 
+               color = "red", shape = 24) +
+    geom_point(data = model7.health.pred[I.highDcook, ], size = 3, 
+               color = "black", shape = 24) +
+    facet_grid(rows = vars(sex_cat), cols = vars(health_new)) +
+    labs(title = "DFBETA intercept vs age, by sex and health status") +
+    theme(text = element_text(size = 14)) 
+  
+  #age
+  ggplot(model7.health.pred, aes(age, dfage, color = as.factor(hosp_cat))) +
+    geom_point() +
+    geom_point(data = model7.health.pred[I.highv, ], size = 3, 
+               color = "red", shape = 24) +
+    geom_point(data = model7.health.pred[I.highDcook, ], size = 3, 
+               color = "black", shape = 24) +
+    facet_grid(rows = vars(sex_cat), cols = vars(health_new)) +
+    labs(title = "DFBETA age vs age, by sex and health status") +
+    theme(text = element_text(size = 14)) 
+  
+  #age^2
+  ggplot(model7.health.pred, aes(age, dfage2, color = as.factor(hosp_cat))) +
+    geom_point() +
+    geom_point(data = model7.health.pred[I.highv, ], size = 3, 
+               color = "red", shape = 24) +
+    geom_point(data = model7.health.pred[I.highDcook, ], size = 3, 
+               color = "black", shape = 24) +
+    facet_grid(rows = vars(sex_cat), cols = vars(health_new)) +
+    labs(title = "DFBETA age^2 vs age, by sex and health status") +
+    theme(text = element_text(size = 14)) 
+  
+  #non-good health
+  ggplot(model7.health.pred, aes(age, dfnongoodhealth, color = as.factor(hosp_cat))) +
+    geom_point() +
+    geom_point(data = model7.health.pred[I.highv, ], size = 3, 
+               color = "red", shape = 24) +
+    geom_point(data = model7.health.pred[I.highDcook, ], size = 3, 
+               color = "black", shape = 24) +
+    facet_grid(rows = vars(sex_cat), cols = vars(health_new)) +
+    labs(title = "DFBETA non-good health vs age, by sex and health status") +
+    theme(text = element_text(size = 14)) 
+  
+  #male
+  ggplot(model7.health.pred, aes(age, dfmale, color = as.factor(hosp_cat))) +
+    geom_point() +
+    geom_point(data = model7.health.pred[I.highv, ], size = 3, 
+               color = "red", shape = 24) +
+    geom_point(data = model7.health.pred[I.highDcook, ], size = 3, 
+               color = "black", shape = 24) +
+    facet_grid(rows = vars(sex_cat), cols = vars(health_new)) +
+    labs(title = "DFBETA male vs age, by sex and health status") +
+    theme(text = element_text(size = 14))
+  
 
 ##### Part 4a #####
 
