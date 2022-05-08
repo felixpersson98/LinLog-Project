@@ -317,7 +317,7 @@ if(SAVE.IMAGES) ggsave(filename = "2b.png",
 ##### Part 2c #####
 
 # Creating the full model, including categorical variables
-model4.full <- glm(hosp ~ age + I(age^2) + sex_cat + civilst_cat + exercise_cat +
+model4.full <- glm(hosp ~ age + I(age^2) + sex_cat + health_cat + civilst_cat + exercise_cat +
              work_norm_cat + inc_hh + inc_tot, family = "binomial", data = df)
 
 # McFadden, AIC & BIC
@@ -342,7 +342,7 @@ pchisq(age.D_diff, age.df_diff, lower.tail = FALSE)
 
 ####### ---------------------------
 
-# Partial Likelihood ratio test
+# Partial Likelihood ratio test sex
 model4.sex <- update(model4.full, . ~ . -sex_cat)
 
 (anova.sex <- anova(model4.sex, model4.full))
@@ -356,7 +356,21 @@ pchisq(sex.D_diff, sex.df_diff, lower.tail = FALSE)
 
 ####### ---------------------------
 
-# Partial Likelihood ratio test
+# Partial Likelihood ratio test health
+model4.health <- update(model4.full, . ~ . -health_cat)
+
+(anova.health <- anova(model4.health, model4.full))
+(heath.D_diff <- anova.health$Deviance[2])
+(health.df_diff <- anova.health$Df[2])
+
+# chi2-quantile to compare D_diff with:
+qchisq(1 - 0.05, health.df_diff)
+# or P-value:
+pchisq(heath.D_diff, health.df_diff, lower.tail = FALSE)
+
+####### ---------------------------
+
+# Partial Likelihood ratio test civil status
 model4.civist <- update(model4.full, . ~ . -civilst_cat)
 
 (anova.civist <- anova(model4.civist, model4.full))
@@ -370,7 +384,7 @@ pchisq(civist.D_diff, civist.df_diff, lower.tail = FALSE)
 
 ####### ---------------------------
 
-# Partial Likelihood ratio test
+# Partial Likelihood ratio test exercise
 model4.exercise <- update(model4.full, . ~ . -exercise_cat)
 
 (anova.exercise <- anova(model4.exercise, model4.full))
@@ -384,7 +398,7 @@ pchisq(exercise.D_diff, exercise.df_diff, lower.tail = FALSE)
 
 ####### ---------------------------
 
-# Partial Likelihood ratio test
+# Partial Likelihood ratio test working hours
 model4.work_norm <- update(model4.full, . ~ . -work_norm_cat)
 (anova.work_norm <- anova(model4.work_norm, model4.full))
 (work_norm.D_diff <- anova.work_norm$Deviance[2])
@@ -428,7 +442,14 @@ exp(confint(model5.aic))
 
 #Test against the full model
 #Partial likelihood test?
+(anova.aic.full <- anova(model5.aic, model4.full))
+aic.full.D_diff <- anova.aic.full$Deviance[2]
+aic.full.df_diff <- anova.aic.full$Df[2]
 
+#chi2-quantile to compare D_diff with:
+qchisq(1 - 0.05, aic.full.df_diff)
+# or P-value:
+pchisq(aic.full.D_diff, aic.full.df_diff, lower.tail = FALSE)
 
 
 ##### Part 2e #####
@@ -450,10 +471,45 @@ exp(confint(model6.bic))
 (AIC(model6.bic))
 (BIC(model6.bic))
 
+#Test against the full model
+#Partial likelihood test?
+(anova.bic.full <- anova(model6.bic, model4.full))
+bic.full.D_diff <- anova.bic.full$Deviance[2]
+bic.full.df_diff <- anova.bic.full$Df[2]
 
+#chi2-quantile to compare D_diff with:
+qchisq(1 - 0.05, bic.full.df_diff)
+# or P-value:
+pchisq(bic.full.D_diff, bic.full.df_diff, lower.tail = FALSE)
+
+#The model is nested with the AIC model
+#Testing against the AIC model
+#Test against the full model
+#Partial likelihood test?
+(anova.bic.aic <- anova(model6.bic, model5.aic))
+bic.aic.D_diff <- anova.bic.aic$Deviance[2]
+bic.aic.df_diff <- anova.bic.aic$Df[2]
+
+#chi2-quantile to compare D_diff with:
+qchisq(1 - 0.05, bic.aic.df_diff)
+# or P-value:
+pchisq(bic.aic.D_diff, bic.aic.df_diff, lower.tail = FALSE)
+
+#Relevel health, bad health = reference category
+df$health_cat <- relevel(df$health_cat, ref = "bad")
+# Stepwise BIC selection with bad health as reference
+# starting with null model
+model6.bic <- glm()
 
 
 ##### Part 3a #####
+
+#Calculate predicted probabilities
+#Plot predicted probabilities
+
+
+
+
 
 ##### Part 3b #####
 
