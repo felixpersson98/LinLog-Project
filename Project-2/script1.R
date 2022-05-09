@@ -551,7 +551,7 @@ plot.v +
 
 ##### Part 3b #####
 
-#Standardised deviance residuals
+#Standardized deviance residuals
 model7.health.pred$devres <- influence(model7.health)$dev.res
 model7.health.pred$devstd <- model7.health.pred$devres/
   sqrt(1 - model7.health.pred$v)
