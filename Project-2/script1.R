@@ -692,7 +692,16 @@ pred.phat$yhat.aic <- as.numeric(pred.phat$p.aic > 0.5)
 (accu.aic <- sum(diag(confusion.aic)) / sum(confusion.aic))
 #(prec.aic <- confusion.aic[2, 2] / col.01.aic[2])
 (prec.aic <- 0 / col.01.aic[2])
-  
+
+# Display values in table
+table4a <- data.frame(
+  "sens" = sens.aic,
+  "spec" = spec.aic,
+  "accu" = accu.aic,
+  "prec" = prec.aic
+)
+rownames(table4a) <- "AIC-model"
+table4a
 
 ##### Part 4b #####
   # ROC-curves
@@ -746,12 +755,44 @@ roc.test(roc.age_squared, roc.aic)
 roc.test(roc.bic3, roc.aic)
 roc.test(roc.bic2, roc.aic)
 
-where
 ##### Part 4c #####
 roc.df.aic$sum.spse <- roc.df.aic$specificity + roc.df.aic$sensitivity
-head(roc.df.aic)
-temp <- max(roc.df.aic["sum.spse"])
-roc.df.aic[index(roc.df.aic$sum.spse == temp), ]
+
+# Finding where the sum is the largest 
+# Also they should be quite close to each other
+roc.df.aic[roc.df.aic$sum.spse > 1.2598, ]
+p.new <- 0.2113859
+
+# Collect new confusion matrix
+pred.phat <- cbind(
+  df,
+  p.aic = predict(model.aic, type = "response")
+)
+head(pred.phat)
+
+# Confusion matrix for model.aic
+pred.phat$yhat.aic <- as.numeric(pred.phat$p.aic > p.new)
+(row.01 <- table(df$hosp_cat))
+(col.01.aic <- table(pred.phat$yhat.aic))
+(confusion.aic <- table(pred.phat$hosp_cat, pred.phat$yhat.aic))
+(spec.aic <- confusion.aic[1, 1] / row.01[1])
+(sens.aic <- confusion.aic[2, 2] / row.01[2])
+(accu.aic <- sum(diag(confusion.aic)) / sum(confusion.aic))
+(prec.aic <- confusion.aic[2, 2] / col.01.aic[2])
+
+# Display values in table
+table4c <- data.frame(
+  "sens" = sens.aic,
+  "spec" = spec.aic,
+  "accu" = accu.aic,
+  "prec" = prec.aic
+)
+rownames(table4c) <- "AIC-model (new p)"
+
+
+# Compare
+table4a
+table4c
 
 
 ##### Part 4d #####
