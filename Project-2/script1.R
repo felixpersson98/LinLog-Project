@@ -760,7 +760,7 @@ roc.df.aic$sum.spse <- roc.df.aic$specificity + roc.df.aic$sensitivity
 
 # Finding where the sum is the largest 
 # Also they should be quite close to each other
-roc.df.aic[roc.df.aic$sum.spse > 1.2598, ]
+roc.df.aic[roc.df.aic$sum.spse == max(roc.df.aic$sum.spse), ]
 p.new <- 0.2113859
 
 # Collect new confusion matrix
