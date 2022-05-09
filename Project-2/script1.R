@@ -662,6 +662,34 @@ ggplot(model7.health.pred, aes(xb, Dcook, color = as.factor(hosp_cat))) +
   
 
 ##### Part 4a #####
+  
+  #Renaming the models
+  model.health <- model1.glm
+  model.age_squared <- model3
+  model.aic <- model5.aic
+  model.bic3 <- model6.bic
+  model.bic2 <- model7.health
+  
+  #estimating p_i for the models
+  pred.phat <- cbind(
+    df,
+    p.health = predict(model.health, type = "response"),
+    p.age_squared = predict(model.age_squared, type = "response"),
+    p.aic = predict(model.aic, type = "response"),
+    p.bic3 = predict(model.bic3, type = "response"),
+    p.bic2 = predict(model.bic2, type = "response"))
+  head(pred.phat)
+  
+  # Confusion matrix for model.aic
+  pred.phat$yhat.aic <- as.numeric(pred.phat$p.aic > 0.5)
+  (row.01 <- table(df$hosp_cat))
+  (col.01.aic <- table(pred.phat$yhat.aic))
+  (confusion.aic <- table(pred.phat$hosp_cat, pred.phat$yhat.aic))
+  (spec.aic <- confusion.aic[1, 1] / row.01[1])
+  (sens.aic <- confusion.aic[2, 2] / row.01[2])
+  (accu.aic <- sum(diag(confusion.aic)) / sum(confusion.aic))
+  (prec.aic <- confusion.aic[2, 2] / col.01.aic[2])
+  
 
 ##### Part 4b #####
 
