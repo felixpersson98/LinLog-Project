@@ -794,7 +794,86 @@ rownames(table4c) <- "AIC-model (new p)"
 table4a
 table4c
 
-
 ##### Part 4d #####
+# Reset prediction matrix
+pred.phat <- cbind(
+  df,
+  p.aic = predict(model.aic, type = "response")
+)
+
+# Sort the prediction probabilities
+pred.sort <- pred.phat[order(pred.phat$p.aic),]
+n = nrow(pred.sort)
+
+pred.sort$rank <- seq(1, n)
+head(pred.sort)
+
+# Divide into g groups
+sum.aic <- summary(model.aic)
+#g <- sum.aic$df[1] + 2
+g = 16
+ng <- n / g
+
+# Plot P_i and Y_i
+ggplot(pred.sort, aes(rank, p.aic)) +
+  geom_point(alpha=0.8, size=0.7) +
+  geom_jitter(aes(y = hosp), height = 0.01) +
+  geom_vline(xintercept = seq(ng, nrow(pred.sort) - ng, ng)) +
+  labs(title = "AIC model: Estimated probabilities by increasing size",
+       caption = sprintf("g = %s groups", g),
+       x = "(i) = 1,...,n", y = "p-hat") +
+  theme(text = element_text(size = 14))
+
+if(SAVE.IMAGES) ggsave(filename=sprintf("4dg=%sSortedP.png", g), path="./images/Part 3/")
+
+# A for-loop to set the group numbers:
+head(pred.sort)
+pred.sort$group <- NA
+for (k in seq(1, g)) {
+  I <- (k - 1)*ng + seq(1, ng)
+  pred.sort$group[I] <- k
+}
+head(pred.sort)
+
+
+# Calculate Observed and Expected in each group:
+# aggregate(y ~ x, FUN = mean) calculates the mean of y
+# separately for each group.
+# merge(data1, data2) joins two data frames using any common
+# variables as keys, in this case, "group".
+
+# Number of successes:
+OE1 <- merge(aggregate(hosp ~ group, data = pred.sort, FUN = sum),
+             aggregate(p.aic ~ group, data = pred.sort, FUN = sum))
+OE1
+# Number of failures = n_g - successes:
+OE0 <- OE1
+OE0$hosp <- ng - OE1$hosp
+OE0$p.aic <- ng - OE1$p.aic
+
+# A variable to use for color coding:
+OE1$outcome <- "Y = 1"
+OE0$outcome <- "Y = 0"
+
+# Bind the two data sets as rows (r):
+(OE <- rbind(OE1, OE0))
+
+
+# And plot:
+# Set the tickmarks on the x-axis to integers 1,...,g
+# Note the linetype inside the aes() to set different
+# linetype to O and E automatically
+
+ggplot(OE, aes(group, p.aic, color = outcome)) +
+  geom_line(aes(linetype = "expected"), size = 1) +
+  geom_line(aes(y = hosp, linetype = "observed"), size = 1) +
+  labs(title = "AIC-Model: Observed and expected in each group",
+       y = "number of observations") +
+  theme(text = element_text(size = 14)) +
+  scale_x_continuous(breaks = seq(1, g))
+
+if(SAVE.IMAGES) ggsave(filename=sprintf("4dg=%sObservedValuesInGroup.png", g), 
+                       path="./images/Part 3/")
 
 ##### Part 4e #####
+
