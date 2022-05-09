@@ -664,90 +664,95 @@ ggplot(model7.health.pred, aes(xb, Dcook, color = as.factor(hosp_cat))) +
 
 ##### Part 4a #####
   
-  #Renaming the models
-  model.health <- model1.glm
-  model.age_squared <- model3
-  model.aic <- model5.aic
-  model.bic3 <- model6.bic
-  model.bic2 <- model7.health
+# Renaming the models
+model.health <- model1.glm
+model.age_squared <- model3
+model.aic <- model5.aic
+model.bic3 <- model6.bic
+model.bic2 <- model7.health
   
-  #estimating p_i for the models
-  pred.phat <- cbind(
+# Estimating p_i for the models
+pred.phat <- cbind(
     df,
     p.health = predict(model.health, type = "response"),
     p.age_squared = predict(model.age_squared, type = "response"),
     p.aic = predict(model.aic, type = "response"),
     p.bic3 = predict(model.bic3, type = "response"),
     p.bic2 = predict(model.bic2, type = "response"))
-  head(pred.phat)
+head(pred.phat)
   
-  # Confusion matrix for model.aic
-  pred.phat$yhat.aic <- as.numeric(pred.phat$p.aic > 0.5)
-  (row.01 <- table(df$hosp_cat))
-  (col.01.aic <- table(pred.phat$yhat.aic))
-  (confusion.aic <- table(pred.phat$hosp_cat, pred.phat$yhat.aic))
-  #(sens.aic <- confusion.aic[2, 2] / row.01[2])
-  (sens.aic <- 0 / row.01[2])
-  (spec.aic <- confusion.aic[1, 1] / row.01[1])
-  (accu.aic <- sum(diag(confusion.aic)) / sum(confusion.aic))
-  #(prec.aic <- confusion.aic[2, 2] / col.01.aic[2])
-  (prec.aic <- 0 / col.01.aic[2])
+# Confusion matrix for model.aic
+pred.phat$yhat.aic <- as.numeric(pred.phat$p.aic > 0.5)
+(row.01 <- table(df$hosp_cat))
+(col.01.aic <- table(pred.phat$yhat.aic))
+(confusion.aic <- table(pred.phat$hosp_cat, pred.phat$yhat.aic))
+# (sens.aic <- confusion.aic[2, 2] / row.01[2])
+(sens.aic <- 0 / row.01[2])
+(spec.aic <- confusion.aic[1, 1] / row.01[1])
+(accu.aic <- sum(diag(confusion.aic)) / sum(confusion.aic))
+#(prec.aic <- confusion.aic[2, 2] / col.01.aic[2])
+(prec.aic <- 0 / col.01.aic[2])
   
 
 ##### Part 4b #####
   # ROC-curves
-  roc.health <- roc(hosp_cat ~ p.health, data = pred.phat)
-  roc.df.health <- coords(roc.health, transpose = FALSE)
-  roc.df.health$model <- "health"
-  roc.age_squared <- roc(hosp_cat ~ p.age_squared, data = pred.phat)
-  roc.df.age_squared <- coords(roc.age_squared, transpose = FALSE)
-  roc.df.age_squared$model <- "age_squared"
-  roc.aic <- roc(hosp_cat ~ p.aic, data = pred.phat)
-  roc.df.aic <- coords(roc.aic, transpose = FALSE)
-  roc.df.aic$model <- "aic"
-  roc.bic3 <- roc(hosp_cat ~ p.bic3, data = pred.phat)
-  roc.df.bic3 <- coords(roc.bic3, transpose = FALSE)
-  roc.df.bic3$model <- "bic3"
-  roc.bic2 <- roc(hosp_cat ~ p.bic2, data = pred.phat)
-  roc.df.bic2 <- coords(roc.bic2, transpose = FALSE)
-  roc.df.bic2$model <- "bic2"
+roc.health <- roc(hosp_cat ~ p.health, data = pred.phat)
+roc.df.health <- coords(roc.health, transpose = FALSE)
+roc.df.health$model <- "health"
+roc.age_squared <- roc(hosp_cat ~ p.age_squared, data = pred.phat)
+roc.df.age_squared <- coords(roc.age_squared, transpose = FALSE)
+roc.df.age_squared$model <- "age_squared"
+roc.aic <- roc(hosp_cat ~ p.aic, data = pred.phat)
+roc.df.aic <- coords(roc.aic, transpose = FALSE)
+roc.df.aic$model <- "aic"
+roc.bic3 <- roc(hosp_cat ~ p.bic3, data = pred.phat)
+roc.df.bic3 <- coords(roc.bic3, transpose = FALSE)
+roc.df.bic3$model <- "bic3"
+roc.bic2 <- roc(hosp_cat ~ p.bic2, data = pred.phat)
+roc.df.bic2 <- coords(roc.bic2, transpose = FALSE)
+roc.df.bic2$model <- "bic2"
 
   
-  roc.df <- rbind(roc.df.health, roc.df.age_squared, roc.df.aic, roc.df.bic3, 
-                  roc.df.bic2)
+roc.df <- rbind(roc.df.health, roc.df.age_squared, roc.df.aic, roc.df.bic3, 
+                roc.df.bic2)
   
-  # Plot all the curves, in different colors:
-  ggplot(roc.df, aes(specificity, sensitivity,
-                     color = model)) +
+# Plot all the curves, in different colors:
+ggplot(roc.df, aes(specificity, sensitivity,
+                   color = model)) +
     geom_path(size = 1) +
     coord_fixed() +       # square plotting area
     scale_x_reverse() +   # Reverse scale on the x-axis!
     labs(title = "ROC-curves for the five models") +
     theme(text = element_text(size = 14))
-  
-  #Collecting AUC and intervals for the models
-  (aucs <- 
-      data.frame(
-        model = c("health", "age_squared", "aic", "bic3", "bic2"),
-        auc = c(auc(roc.health), auc(roc.age_squared), auc(roc.aic), auc(roc.bic3),
-                auc(roc.bic2)),
-        lwr = c(ci(roc.health)[1], ci(roc.age_squared)[1],
-                ci(roc.aic)[1], ci(roc.bic3)[1],
-                ci(roc.bic2)[1]),
-        upr = c(ci(auc(roc.health))[3], ci(auc(roc.age_squared))[3],
-                ci(auc(roc.aic))[3], ci(auc(roc.bic3))[3],
-                ci(auc(roc.bic2))[3])))
-  
-  # Comparing their AUC
-  roc.test(roc.health, roc.aic)
-  roc.test(roc.age_squared, roc.aic)
-  roc.test(roc.bic3, roc.aic)
-  roc.test(roc.bic2, roc.aic)
 
+if(SAVE.IMAGES) ggsave(filename="4aRocCurves.png", path="./Images/Part 3")  
 
+# Collecting AUC and intervals for the models
+(aucs <- 
+    data.frame(
+      model = c("health", "age_squared", "aic", "bic3", "bic2"),
+      auc = c(auc(roc.health), auc(roc.age_squared), auc(roc.aic), auc(roc.bic3),
+              auc(roc.bic2)),
+      lwr = c(ci(roc.health)[1], ci(roc.age_squared)[1],
+              ci(roc.aic)[1], ci(roc.bic3)[1],
+              ci(roc.bic2)[1]),
+      upr = c(ci(auc(roc.health))[3], ci(auc(roc.age_squared))[3],
+              ci(auc(roc.aic))[3], ci(auc(roc.bic3))[3],
+              ci(auc(roc.bic2))[3])))
+
+# Comparing their AUC
+roc.test(roc.health, roc.aic)
+roc.test(roc.age_squared, roc.aic)
+roc.test(roc.bic3, roc.aic)
+roc.test(roc.bic2, roc.aic)
+
+where
 ##### Part 4c #####
-  
-  
+roc.df.aic$sum.spse <- roc.df.aic$specificity + roc.df.aic$sensitivity
+head(roc.df.aic)
+temp <- max(roc.df.aic["sum.spse"])
+roc.df.aic[index(roc.df.aic$sum.spse == temp), ]
+
 
 ##### Part 4d #####
 
