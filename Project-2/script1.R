@@ -422,15 +422,18 @@ model5.aic <- step(model0.null,
      direction = "both",
      k = 2)
 
-#What happens to work_norm?
-#Boxplot of work_norm against age
+# What happens to work_norm?
+# Boxplot of work_norm against age
 ggplot(df, aes(work_norm_cat, age)) +
   geom_boxplot() +
   xlab("working hours") +
   ylab("age") +
-  theme(text = element_text(size = 14))
+  theme(text = element_text(size = 14),
+        axis.text.x = element_text(angle =45, hjust = 1))
 
-#calculating betas and their confidence intervals
+if(SAVE.IMAGES) ggsave(filename="2dboxplot.png", path="./images/Part 2/")
+
+# Calculating betas and their confidence intervals
 model5.aic$coefficients
 confint(model5.aic)
 exp(model5.aic$coefficients)
@@ -441,13 +444,13 @@ exp(confint(model5.aic))
 (AIC(model5.aic))
 (BIC(model5.aic))
 
-#Test against the full model
-#Partial likelihood test?
+# Test against the full model
+# Partial likelihood test?
 (anova.aic.full <- anova(model5.aic, model4.full))
 aic.full.D_diff <- anova.aic.full$Deviance[2]
 aic.full.df_diff <- anova.aic.full$Df[2]
 
-#chi2-quantile to compare D_diff with:
+# Chi2-quantile to compare D_diff with:
 qchisq(1 - 0.05, aic.full.df_diff)
 # or P-value:
 pchisq(aic.full.D_diff, aic.full.df_diff, lower.tail = FALSE)
@@ -455,13 +458,13 @@ pchisq(aic.full.D_diff, aic.full.df_diff, lower.tail = FALSE)
 
 ##### Part 2e #####
 # Stepwise BIC selection
-# starting with null model
+# Starting with null model
 model6.bic <- step(model0.null, 
                scope = list(lower = model0.null, upper = model4.full),
                direction = "both",
                k = log(nrow(df)))
 
-#calculating betas and their confidence intervals
+# Calculating betas and their confidence intervals
 model6.bic$coefficients
 confint(model6.bic)
 exp(model6.bic$coefficients)
@@ -472,21 +475,21 @@ exp(confint(model6.bic))
 (AIC(model6.bic))
 (BIC(model6.bic))
 
-#Test against the full model
-#Partial likelihood test?
+# Test against the full model
+# Partial likelihood test?
 (anova.bic.full <- anova(model6.bic, model4.full))
 bic.full.D_diff <- anova.bic.full$Deviance[2]
 bic.full.df_diff <- anova.bic.full$Df[2]
 
-#chi2-quantile to compare D_diff with:
+# Chi2-quantile to compare D_diff with:
 qchisq(1 - 0.05, bic.full.df_diff)
 # or P-value:
 pchisq(bic.full.D_diff, bic.full.df_diff, lower.tail = FALSE)
 
-#The model is nested with the AIC model
-#Testing against the AIC model
-#Test against the full model
-#Partial likelihood test?
+# The model is nested with the AIC model
+# Testing against the AIC model
+# Test against the full model
+# Partial likelihood test?
 (anova.bic.aic <- anova(model6.bic, model5.aic))
 bic.aic.D_diff <- anova.bic.aic$Deviance[2]
 bic.aic.df_diff <- anova.bic.aic$Df[2]
@@ -495,16 +498,63 @@ bic.aic.df_diff <- anova.bic.aic$Df[2]
 qchisq(1 - 0.05, bic.aic.df_diff)
 # or P-value:
 pchisq(bic.aic.D_diff, bic.aic.df_diff, lower.tail = FALSE)
+head(df)
 
-#Plot predicted probabilities
+# Plot the probabilities
+model6.bic.pred <- cbind(
+  df,
+  phat = predict(model6.bic, type="response")
+)
+head(model6.bic.pred)
 
+model6.bic.pred <- cbind(
+  model6.bic.pred,
+  logit = predict(model6.bic, se.fit = TRUE))
 
+# Assert redundant variable to null
+model6.bic.pred$logit.residual.scale <- NULL
+
+# CI for log-odds
+(lambda <- qnorm(1 - 0.05/2))
+model6.bic.pred$logit.lwr <- model6.bic.pred$logit.fit - 
+  lambda * model6.bic.pred$logit.se.fit
+model6.bic.pred$logit.upr <- model6.bic.pred$logit.fit + 
+  lambda * model6.bic.pred$logit.se.fit
+head(model6.bic.pred)
+
+# Transform the log-odds intervals into C.I. for odds
+model6.bic.pred$odds.lwr <- exp(model6.bic.pred$logit.lwr)
+model6.bic.pred$odds.upr <- exp(model6.bic.pred$logit.upr)
+head(model6.bic.pred)
+
+# Transform the odds intervals into C.I. for p
+model6.bic.pred$p.lwr <- model6.bic.pred$odds.lwr/(1 + model6.bic.pred$odds.lwr)
+model6.bic.pred$p.upr <- model6.bic.pred$odds.upr/(1 + model6.bic.pred$odds.upr)
+head(model6.bic.pred)
+model6.bic.pred$sex <- factor(model6.bic.pred$sex, levels = c(1, 2),
+                 labels = c("Male", "Female"))
+model6.bic.pred$health <- factor(model6.bic.pred$health, levels = c(1, 2, 3),
+                                 labels = c("Good", "Bad", "In between"))
+
+ggplot(model6.bic.pred, aes(x=age, y=hosp, fill=health)) +
+  geom_point() + facet_wrap(~sex) +
+  geom_line(aes(y = phat), color = "red", size = 1) +
+  geom_ribbon(aes(ymin = p.lwr, ymax = p.upr), alpha = 0.2) +
+  xlab("Age") +
+  ylab("In hospital for 1 + days") +
+  labs(title = "1+ days in hospital p-values for BIC-model") + 
+  theme(text = element_text(size = 14), plot.title = element_text(size=20))
+
+if(SAVE.IMAGES) ggsave(filename="BICFacetPlot2e.png", path="./images/Part 2/",
+                       height=10, width=10)
 
 #Relevel health, bad health = reference category
 df$health_cat <- relevel(df$health_cat, ref = "bad")
 model6.bic.releveled <- glm(hosp ~ age + I(age^2) + health_cat + sex_cat, 
                             family = "binomial", data = df)
 summary(model6.bic.releveled)
+
+########--------------------------------------
 
 # Use factors for health category
 df$health_new <- factor(df$health, levels = c(1, 2, 3),
