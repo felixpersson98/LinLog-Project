@@ -1,8 +1,12 @@
 ##### Part 1a #####
+
 ### Imports ###
 library(ggplot2)
 library(GGally)
 library(pROC)
+
+# Hosmer-Lemeshow goodness of fit test:
+library(ResourceSelection)
 
 ### Constants ###
 SAVE.IMAGES <- TRUE
@@ -865,8 +869,9 @@ head(pred.sort)
 
 # Divide into g groups
 sum.aic <- summary(model.aic)
-#g <- sum.aic$df[1] + 2
-g = 16
+g <- sum.aic$df[1] + 2
+g
+#g = 16
 ng <- n / g
 
 # Plot P_i and Y_i
@@ -928,7 +933,23 @@ ggplot(OE, aes(group, p.aic, color = outcome)) +
   scale_x_continuous(breaks = seq(1, g))
 
 if(SAVE.IMAGES) ggsave(filename=sprintf("4dg=%sObservedValuesInGroup.png", g), 
-                       path="./images/Part 3/")
+                       path="./images/Part 4/")
+
+
+# The HL test "by hand"
+
+(chi2HL <- sum((OE$hosp - OE$p.aic)^2/OE$p.aic))
+# chi2-quantile to compare with:
+qchisq(1 - 0.05, g - 2)
+# or P-value:
+pchisq(chi2HL, g - 2, lower.tail = FALSE)
+
+# HL using hoslem.test####
+# p+1:
+length(model.aic$coefficients) # g > 10
+
+(HL.10 <- hoslem.test(pred.sort$hosp, pred.sort$p.aic, g = 16))
+HL.10$expected
 
 ##### Part 4e #####
 
