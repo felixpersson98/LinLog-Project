@@ -139,7 +139,6 @@ exp(confint(model2))
 age.changes <- cbind(1, 5)
 
 # Changes
-(lambda <- qnorm(1 - 0.05/2))
 (odds.logchange <- (beta2 * age.changes)) # Log chanage
 (odds.change <- exp(beta2)^age.changes) # Change
 (odds.logci <- data.frame(
@@ -183,6 +182,7 @@ ggplot(df.pred, aes(age, hosp)) +
   geom_ribbon(aes(ymin = p.lwr, ymax = p.upr), alpha = 0.2) +
   xlab("Age") +
   ylab("In hospital for 1 + days") +
+  geom_smooth(se = FALSE, linetype = "dashed") +
   labs(title = "1+ hospital days (=1) or No hospital days (=0) vs age with C.I") +
   theme(text = element_text(size = 14), plot.title = element_text(size=20))
 
@@ -245,14 +245,15 @@ df.pred$phat2 <- df.pred2$phat
 
 ggplot(df.pred, aes(age, hosp)) +
   geom_point() +
-  geom_line(aes(y = phat), color = "red", size = 1) +
+  geom_line(aes(y = phat), color = "red", size = 1, alpha = 0.6) +
   geom_ribbon(aes(ymin = p.lwr, ymax = p.upr), alpha = 0.2) +
-  geom_line(aes(y = phat2), color = "blue", size = 1) +
+  geom_line(aes(y = phat2), color = "orange", size = 1) +
   geom_ribbon(aes(ymin = p2.lwr, ymax = p2.upr), alpha = 0.2) +
   xlab("Age") +
-  ylab("In hospital for 1 + days") +
+  ylab("Hospital for 1 + days") + 
+  geom_smooth(se = FALSE, linetype = "dashed") +
   labs(title = "1+ hospital days (=1) or No hospital days (=0) vs age with C.I",
-       caption="Red line = age model, blue line = age + age squared model") + 
+       caption="Red line = age model, orange line = age + age squared model") + 
   theme(text = element_text(size = 14), plot.title = element_text(size=20))
 
 # Save
@@ -433,7 +434,7 @@ ggplot(df, aes(work_norm_cat, age)) +
   xlab("working hours") +
   ylab("age") +
   theme(text = element_text(size = 14),
-        axis.text.x = element_text(angle =45, hjust = 1))
+        axis.text.x = element_text(angle =30, hjust = 1))
 
 if(SAVE.IMAGES) ggsave(filename="2dboxplot.png", path="./images/Part 2/")
 
@@ -819,8 +820,8 @@ roc.df.aic$sum.spse <- roc.df.aic$specificity + roc.df.aic$sensitivity
 
 # Finding where the sum is the largest 
 # Also they should be quite close to each other
-roc.df.aic[roc.df.aic$sum.spse == max(roc.df.aic$sum.spse), ]
-p.new <- 0.2113859
+roc.df.aic[roc.df.aic$sum.spse >1.25, ]
+p.new <- 0.1819830
 
 # Collect new confusion matrix
 pred.phat <- cbind(
