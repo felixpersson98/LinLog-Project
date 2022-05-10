@@ -554,8 +554,6 @@ model6.bic.releveled <- glm(hosp ~ age + I(age^2) + health_cat + sex_cat,
                             family = "binomial", data = df)
 summary(model6.bic.releveled)
 
-########--------------------------------------
-
 # Use factors for health category
 df$health_new <- factor(df$health, levels = c(1, 2, 3),
                       labels = c("Good", "Non-good", "Non-good"))
@@ -563,7 +561,7 @@ df$health_new <- factor(df$health, levels = c(1, 2, 3),
 model7.health <- glm(hosp ~ age + I(age^2) + health_new + sex_cat, 
                             family = "binomial", data = df)
 
-#calculating betas and their confidence intervals
+# Calculating betas and their confidence intervals
 model7.health$coefficients
 confint(model7.health)
 exp(model7.health$coefficients)
@@ -574,37 +572,35 @@ exp(confint(model7.health))
 (AIC(model7.health))
 (BIC(model7.health))
 
-
 ##### Part 3a #####
-
-#Plotting leverage against age for all combinations of sex and health status
+# Plotting leverage against age for all combinations of sex and health status
 model7.health.pred <- cbind(df,
                    xb = predict(model7.health),
                    v = influence(model7.health)$hat)
 head(model7.health.pred)
 
-(plot.v <- ggplot(model7.health.pred, aes(age, v, color = hosp_cat)) + 
-    geom_point() +
+(
+  plot.v <- ggplot(model7.health.pred, aes(age, v, color = hosp_cat)) + 
+    geom_point(size=0.8) +
     geom_hline(yintercept = 2*length(model7.health$coefficients)/nrow(df), 
-               color = "red", size = 1) +
+               color = "black", size = 0.8, alpha=0.9) +
     facet_grid(rows = vars(sex_cat), cols = vars(health_new)) +
     labs(title = "Leverage vs age, by sex and health status",
-         caption = "2(p+1)/n in red") +
-    theme(text = element_text(size = 14)))
-
-#Highlighting the highest leverage
-I.highv <- which(model7.health.pred$v > 0.007)
+         caption = "2(p+1)/n in black") +
+    theme(text = element_text(size = 14))
+)
+# Highlighting the highest leverage
+(I.highv <- which(model7.health.pred$v == max(model7.health.pred$v)))
 plot.v +
   geom_point(data = model7.health.pred[I.highv, ], size = 3, 
              color = "red", shape = 24)
 
-
+if(SAVE.IMAGES) ggsave(filename="levvsage3a.png", path="./images/Part 3/")
 
 ##### Part 3b #####
-
 #Standardized deviance residuals
 model7.health.pred$devres <- influence(model7.health)$dev.res
-model7.health.pred$devstd <- model7.health.pred$devres/
+model7.health.pred$devstd <- model7.health.pred$devres /
   sqrt(1 - model7.health.pred$v)
 head(model7.health.pred)
 
