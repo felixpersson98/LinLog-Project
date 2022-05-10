@@ -717,6 +717,7 @@ ggplot(model7.health.pred, aes(age, dfmale, color = as.factor(hosp_cat))) +
     theme(text = element_text(size = 14))
   
 if(SAVE.IMAGES) ggsave(filename="dfbetasvssex.png", path="./images/Part 3/")
+
 ##### Part 4a #####
 # Renaming the models
 model.health <- model1.glm
@@ -758,7 +759,7 @@ rownames(table4a) <- "AIC-model"
 table4a
 
 ##### Part 4b #####
-  # ROC-curves
+# ROC-curves
 roc.health <- roc(hosp_cat ~ p.health, data = pred.phat)
 roc.df.health <- coords(roc.health, transpose = FALSE)
 roc.df.health$model <- "health"
@@ -788,7 +789,7 @@ ggplot(roc.df, aes(specificity, sensitivity,
     labs(title = "ROC-curves for the five models") +
     theme(text = element_text(size = 14))
 
-if(SAVE.IMAGES) ggsave(filename="4aRocCurves.png", path="./Images/Part 3")  
+if(SAVE.IMAGES) ggsave(filename="4aRocCurves.png", path="./Images/Part 4/")  
 
 # Collecting AUC and intervals for the models
 (aucs <- 
