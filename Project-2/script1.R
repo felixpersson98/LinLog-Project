@@ -1,6 +1,8 @@
 ##### Part 1a #####
 
 ### Imports ###
+library(grid)
+library(gridExtra)
 library(ggplot2)
 library(GGally)
 library(pROC)
@@ -869,10 +871,10 @@ pred.sort$rank <- seq(1, n)
 head(pred.sort)
 
 # Divide into g groups
+
+# --------------------- g = 12
 sum.aic <- summary(model.aic)
 g <- sum.aic$df[1] + 2
-g
-#g = 16
 ng <- n / g
 
 # Plot P_i and Y_i
@@ -885,7 +887,7 @@ ggplot(pred.sort, aes(rank, p.aic)) +
        x = "(i) = 1,...,n", y = "p-hat") +
   theme(text = element_text(size = 14))
 
-if(SAVE.IMAGES) ggsave(filename=sprintf("4dg=%sSortedP.png", g), path="./images/Part 3/")
+if(SAVE.IMAGES) ggsave(filename=sprintf("4dg=%sSortedP.png", g), path="./images/Part 4/")
 
 # A for-loop to set the group numbers:
 head(pred.sort)
@@ -925,14 +927,14 @@ OE0$outcome <- "Y = 0"
 # Note the linetype inside the aes() to set different
 # linetype to O and E automatically
 
-ggplot(OE, aes(group, p.aic, color = outcome)) +
-  geom_line(aes(linetype = "expected"), size = 1) +
-  geom_line(aes(y = hosp, linetype = "observed"), size = 1) +
-  labs(title = "AIC-Model: Observed and expected in each group",
-       y = "number of observations") +
-  theme(text = element_text(size = 14)) +
+(
+  hlg12 <- ggplot(OE, aes(group, p.aic, color = outcome)) +
+  geom_line(aes(linetype = "expected"), size = 0.8, alpha=0.7) +
+  geom_line(aes(y = hosp, linetype = "observed"), size = 0.8) +
+  labs(title = sprintf("g: %s", g)) +
+  theme(text = element_text(size = 11)) +
   scale_x_continuous(breaks = seq(1, g))
-
+)
 if(SAVE.IMAGES) ggsave(filename=sprintf("4dg=%sObservedValuesInGroup.png", g), 
                        path="./images/Part 4/")
 
@@ -949,8 +951,256 @@ pchisq(chi2HL, g - 2, lower.tail = FALSE)
 # p+1:
 length(model.aic$coefficients) # g > 10
 
-(HL.10 <- hoslem.test(pred.sort$hosp, pred.sort$p.aic, g = 16))
+(HL.10 <- hoslem.test(pred.sort$hosp, pred.sort$p.aic, g = g))
 HL.10$expected
 
-##### Part 4e #####
+
+# --------------------- g = 10
+sum.aic <- summary(model.aic)
+g <- 10
+ng <- n / g
+
+# Plot P_i and Y_i
+ggplot(pred.sort, aes(rank, p.aic)) +
+  geom_point(alpha=0.8, size=0.7) +
+  geom_jitter(aes(y = hosp), height = 0.01) +
+  geom_vline(xintercept = seq(ng, nrow(pred.sort) - ng, ng)) +
+  labs(title = "AIC model: Estimated probabilities by increasing size",
+       caption = sprintf("g = %s groups", g),
+       x = "(i) = 1,...,n", y = "p-hat") +
+  theme(text = element_text(size = 14))
+
+if(SAVE.IMAGES) ggsave(filename=sprintf("4dg=%sSortedP.png", g), path="./images/Part 4/")
+
+# A for-loop to set the group numbers:
+head(pred.sort)
+pred.sort$group <- NA
+for (k in seq(1, g)) {
+  I <- (k - 1)*ng + seq(1, ng)
+  pred.sort$group[I] <- k
+}
+head(pred.sort)
+
+
+# Calculate Observed and Expected in each group:
+# aggregate(y ~ x, FUN = mean) calculates the mean of y
+# separately for each group.
+# merge(data1, data2) joins two data frames using any common
+# variables as keys, in this case, "group".
+
+# Number of successes:
+OE1 <- merge(aggregate(hosp ~ group, data = pred.sort, FUN = sum),
+             aggregate(p.aic ~ group, data = pred.sort, FUN = sum))
+OE1
+# Number of failures = n_g - successes:
+OE0 <- OE1
+OE0$hosp <- ng - OE1$hosp
+OE0$p.aic <- ng - OE1$p.aic
+
+# A variable to use for color coding:
+OE1$outcome <- "Y = 1"
+OE0$outcome <- "Y = 0"
+
+# Bind the two data sets as rows (r):
+(OE <- rbind(OE1, OE0))
+
+
+# And plot:
+# Set the tickmarks on the x-axis to integers 1,...,g
+# Note the linetype inside the aes() to set different
+# linetype to O and E automatically
+
+( 
+  hlg10 <- ggplot(OE, aes(group, p.aic, color = outcome)) +
+  geom_line(aes(linetype = "expected"), size = 0.8, alpha=0.7) +
+  geom_line(aes(y = hosp, linetype = "observed"), size = 0.8) +
+  labs(title = sprintf("g: %s", g)) +
+  theme(text = element_text(size = 12)) +
+  scale_x_continuous(breaks = seq(1, g))
+)
+if(SAVE.IMAGES) ggsave(filename=sprintf("4dg=%sObservedValuesInGroup.png", g), 
+                       path="./images/Part 4/")
+
+
+# The HL test "by hand"
+
+(chi2HL <- sum((OE$hosp - OE$p.aic)^2/OE$p.aic))
+# chi2-quantile to compare with:
+qchisq(1 - 0.05, g - 2)
+# or P-value:
+pchisq(chi2HL, g - 2, lower.tail = FALSE)
+
+# HL using hoslem.test####
+# p+1:
+length(model.aic$coefficients) # g > 10
+
+(HL.10 <- hoslem.test(pred.sort$hosp, pred.sort$p.aic, g = g))
+HL.10$expected
+
+# --------------------- g = 14
+sum.aic <- summary(model.aic)
+g <- 14
+ng <- n / g
+
+# Plot P_i and Y_i
+ggplot(pred.sort, aes(rank, p.aic)) +
+  geom_point(alpha=0.8, size=0.7) +
+  geom_jitter(aes(y = hosp), height = 0.01) +
+  geom_vline(xintercept = seq(ng, nrow(pred.sort) - ng, ng)) +
+  labs(title = "AIC model: Estimated probabilities by increasing size",
+       caption = sprintf("g = %s groups", g),
+       x = "(i) = 1,...,n", y = "p-hat") +
+  theme(text = element_text(size = 14))
+
+if(SAVE.IMAGES) ggsave(filename=sprintf("4dg=%sSortedP.png", g), path="./images/Part 4/")
+
+# A for-loop to set the group numbers:
+head(pred.sort)
+pred.sort$group <- NA
+for (k in seq(1, g)) {
+  I <- (k - 1)*ng + seq(1, ng)
+  pred.sort$group[I] <- k
+}
+head(pred.sort)
+
+
+# Calculate Observed and Expected in each group:
+# aggregate(y ~ x, FUN = mean) calculates the mean of y
+# separately for each group.
+# merge(data1, data2) joins two data frames using any common
+# variables as keys, in this case, "group".
+
+# Number of successes:
+OE1 <- merge(aggregate(hosp ~ group, data = pred.sort, FUN = sum),
+             aggregate(p.aic ~ group, data = pred.sort, FUN = sum))
+OE1
+# Number of failures = n_g - successes:
+OE0 <- OE1
+OE0$hosp <- ng - OE1$hosp
+OE0$p.aic <- ng - OE1$p.aic
+
+# A variable to use for color coding:
+OE1$outcome <- "Y = 1"
+OE0$outcome <- "Y = 0"
+
+# Bind the two data sets as rows (r):
+(OE <- rbind(OE1, OE0))
+
+
+# And plot:
+# Set the tickmarks on the x-axis to integers 1,...,g
+# Note the linetype inside the aes() to set different
+# linetype to O and E automatically
+
+(
+  hlg14 <- ggplot(OE, aes(group, p.aic, color = outcome)) +
+  geom_line(aes(linetype = "expected"), size = 0.8, alpha=0.7) +
+  geom_line(aes(y = hosp, linetype = "observed"), size = 0.8) +
+  labs(title = sprintf("g: %s", g)) +
+  theme(text = element_text(size = 8)) +
+  scale_x_continuous(breaks = seq(1, g))
+)
+  
+if(SAVE.IMAGES) ggsave(filename=sprintf("4dg=%sObservedValuesInGroup.png", g), 
+                       path="./images/Part 4/")
+
+
+# The HL test "by hand"
+
+(chi2HL <- sum((OE$hosp - OE$p.aic)^2/OE$p.aic))
+# chi2-quantile to compare with:
+qchisq(1 - 0.05, g - 2)
+# or P-value:
+pchisq(chi2HL, g - 2, lower.tail = FALSE)
+
+# HL using hoslem.test####
+# p+1:
+length(model.aic$coefficients) # g > 10
+
+(HL.10 <- hoslem.test(pred.sort$hosp, pred.sort$p.aic, g = g))
+HL.10$expected
+
+# --------------------- g = 16
+sum.aic <- summary(model.aic)
+g <- 16
+ng <- n / g
+
+# Plot P_i and Y_i
+ggplot(pred.sort, aes(rank, p.aic)) +
+  geom_point(alpha=0.8, size=0.7) +
+  geom_jitter(aes(y = hosp), height = 0.01) +
+  geom_vline(xintercept = seq(ng, nrow(pred.sort) - ng, ng)) +
+  labs(title = "AIC model: Estimated probabilities by increasing size",
+       caption = sprintf("g = %s groups", g),
+       x = "(i) = 1,...,n", y = "p-hat") +
+  theme(text = element_text(size = 14))
+
+if(SAVE.IMAGES) ggsave(filename=sprintf("4dg=%sSortedP.png", g), path="./images/Part 4/")
+
+# A for-loop to set the group numbers:
+head(pred.sort)
+pred.sort$group <- NA
+for (k in seq(1, g)) {
+  I <- (k - 1)*ng + seq(1, ng)
+  pred.sort$group[I] <- k
+}
+head(pred.sort)
+
+
+# Calculate Observed and Expected in each group:
+# aggregate(y ~ x, FUN = mean) calculates the mean of y
+# separately for each group.
+# merge(data1, data2) joins two data frames using any common
+# variables as keys, in this case, "group".
+
+# Number of successes:
+OE1 <- merge(aggregate(hosp ~ group, data = pred.sort, FUN = sum),
+             aggregate(p.aic ~ group, data = pred.sort, FUN = sum))
+OE1
+# Number of failures = n_g - successes:
+OE0 <- OE1
+OE0$hosp <- ng - OE1$hosp
+OE0$p.aic <- ng - OE1$p.aic
+
+# A variable to use for color coding:
+OE1$outcome <- "Y = 1"
+OE0$outcome <- "Y = 0"
+
+# Bind the two data sets as rows (r):
+(OE <- rbind(OE1, OE0))
+
+
+# And plot:
+# Set the tickmarks on the x-axis to integers 1,...,g
+# Note the linetype inside the aes() to set different
+# linetype to O and E automatically
+
+( 
+  hlg16 <- ggplot(OE, aes(group, p.aic, color = outcome)) +
+  geom_line(aes(linetype = "expected"), size = 0.8, alpha=0.7) +
+  geom_line(aes(y = hosp, linetype = "observed"), size = 1) +
+  labs(title = sprintf("g: %s", g)) +
+  theme(text = element_text(size = 8)) +
+  scale_x_continuous(breaks = seq(1, g))
+)
+if(SAVE.IMAGES) ggsave(filename=sprintf("4dg=%sObservedValuesInGroup.png", g), 
+                       path="./images/Part 4/")
+
+
+# The HL test "by hand"
+(chi2HL <- sum((OE$hosp - OE$p.aic)^2/OE$p.aic))
+# chi2-quantile to compare with:
+qchisq(1 - 0.05, g - 2)
+# or P-value:
+pchisq(chi2HL, g - 2, lower.tail = FALSE)
+
+# HL using hoslem.test####
+# p+1:
+length(model.aic$coefficients) # g > 10
+
+(HL.10 <- hoslem.test(pred.sort$hosp, pred.sort$p.aic, g = g))
+HL.10$expected
+
+if(SAVE.IMAGES) ggsave(filename = "goodnessoffittest.png", path="./Images/Part 4/", 
+         grid.arrange(grob=hlg10, hlg12, hlg14, hlg16, ncol=2, nrow=2))
 
