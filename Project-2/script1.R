@@ -11,7 +11,7 @@ library(pROC)
 library(ResourceSelection)
 
 ### Constants ###
-SAVE.IMAGES <- TRUE
+SAVE.IMAGES <- FALSE
 
 # Load data
 df <- read.delim("Data/hospital.txt", sep = ";")
