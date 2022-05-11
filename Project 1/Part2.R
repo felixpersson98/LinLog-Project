@@ -178,30 +178,29 @@ model4.log.full$coefficients
 
 model5.log.full <- lm(log(betaplasma) ~ I(age - minage) + sex + smokstat + 
                         quetelet, data = data)
-
 parametersMale5 <- data.frame(
-  "age" = 40 - minage,
+  "age" = 40,
   "sex" = "Male",
-  "smokstat" = "Current Smoker",
+  "smokstat" = "Former",
   "quetelet" = 22
 )
 
 parametersFemale5 <- data.frame(
-  "age" = 40 - minage,
+  "age" = 40,
   "sex" = "Female",
-  "smokstat" = "Current Smoker",
+  "smokstat" = "Former",
   "quetelet" = 22
 )
 parametersMale4 <- data.frame(
-  "age" = 40 - minage,
+  "age" = 40,
   "sex" = "Male",
-  "smokstat" = "Current Smoker",
+  "smokstat" = "Former",
   "bmicat" = "Normal"
 )
 parametersFemale4 <- data.frame(
-  "age" = 40 - minage,
+  "age" = 40,
   "sex" = "Female",
-  "smokstat" = "Current Smoker",
+  "smokstat" = "Former",
   "bmicat" = "Normal"
 )
 (
@@ -218,6 +217,12 @@ parametersFemale4 <- data.frame(
 (
   resultFemale4 <- predict(model4.log.full, newdata = parametersFemale4, interval = "confidence")
 )
+
+exp(resultMale5)
+exp(resultFemale5)
+exp(resultMale4)
+exp(resultFemale4)
+
 
 ## Part 5 ##
 
