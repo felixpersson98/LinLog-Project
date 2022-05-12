@@ -632,7 +632,7 @@ head(model7.health.pred)
 
 # Plot Cook's distance, highlighting the highest
 I.highDcook <- which(model7.health.pred$Dcook > 0.008)
-ggplot(model7.health.pred, aes(xb, Dcook, color = as.factor(hosp_cat))) +
+ggplot(model7.health.pred, aes(age, Dcook, color = as.factor(hosp_cat))) +
   geom_point() +
   geom_point(data = model7.health.pred[I.highDcook, ], size = 3, 
              color = "black", shape = 24) +
@@ -640,7 +640,7 @@ ggplot(model7.health.pred, aes(xb, Dcook, color = as.factor(hosp_cat))) +
              shape = 24, size = 3) +
   geom_hline(yintercept = 4/nrow(df), linetype = "dotted",
              size = 1) +
-  labs(title = "Cook's distance vs linear predictor, by sex and health status",
+  labs(title = "Cook's distance vs age, by sex and health status",
        color = "Y", 
        caption = "4/n in black, high leverage red triangle, 
        high Cook black triangle") +
