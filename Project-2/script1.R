@@ -593,7 +593,7 @@ head(model7.health.pred)
                color = "black", size = 0.8, alpha=0.9) +
     facet_grid(rows = vars(sex_cat), cols = vars(health_new)) +
     labs(title = "Leverage vs age, by sex and health status",
-         caption = "2(p+1)/n in black") +
+         caption = "2(p+1)/n in black", color="Hospital days") +
     theme(text = element_text(size = 14))
 )
 # Highlighting the highest leverage
@@ -617,7 +617,7 @@ ggplot(model7.health.pred, aes(xb, devstd, color = as.factor(hosp_cat))) +
   geom_hline(yintercept = c(-2, 2), linetype = "dashed", size = 1) +
   geom_hline(yintercept = c(-3, 3), linetype = "dotted", size = 1) +
   labs(title = "Standardized deviance residuals vs linear predictor",
-       color = "hospital days") +
+       color="Hospital days") +
   theme(text = element_text(size = 14)) +
   geom_point(data = model7.health.pred[I.highv, ], size = 3, 
              color = "red", shape = 24)
@@ -638,14 +638,13 @@ ggplot(model7.health.pred, aes(age, Dcook, color = as.factor(hosp_cat))) +
              color = "black", shape = 24) +
   geom_point(data = model7.health.pred[I.highv, ], color = "red",
              shape = 24, size = 3) +
+  facet_grid(rows = vars(health_new), cols = vars(sex_cat)) +
   geom_hline(yintercept = 4/nrow(df), linetype = "dotted",
              size = 1) +
-  labs(title = "Cook's distance vs age, by sex and health status",
-       color = "Y", 
-       caption = "4/n in black, high leverage red triangle, 
-       high Cook black triangle") +
-  theme(text = element_text(size = 14)) +
-  facet_grid(rows = vars(health_new), cols = vars(sex_cat))
+  labs(title = "Cook's distance vs age, by sex and health status", color="Hospital days",
+       caption = "4/n in black, high leverage red triangle\nhigh Cook black triangle") +
+  theme(text = element_text(size = 14)) 
+
   
 if(SAVE.IMAGES) ggsave(filename="cooks3c.png", path="./images/Part 3/")
 
@@ -668,7 +667,8 @@ ggplot(model7.health.pred, aes(age, dfintercept, color = as.factor(hosp_cat))) +
     geom_point(data = model7.health.pred[I.highDcook, ], size = 3, 
                color = "black", shape = 24) +
     facet_grid(rows = vars(sex_cat), cols = vars(health_new)) +
-    labs(title = "DFBETA intercept vs age, by sex and health status") +
+    labs(title = "DFBETA intercept vs age, by sex and health status",
+         color="Hospital days") +
     theme(text = element_text(size = 14)) 
   
 if(SAVE.IMAGES) ggsave(filename="dfbetasvsintercept.png", 
@@ -681,7 +681,8 @@ ggplot(model7.health.pred, aes(age, dfage, color = as.factor(hosp_cat))) +
   geom_point(data = model7.health.pred[I.highDcook, ], size = 3, 
              color = "black", shape = 24) +
   facet_grid(rows = vars(sex_cat), cols = vars(health_new)) +
-  labs(title = "DFBETA age vs age, by sex and health status") +
+  labs(title = "DFBETA age vs age, by sex and health status",
+       color="Hospital days") +
   theme(text = element_text(size = 14))
 
 if(SAVE.IMAGES) ggsave(filename="dfbetasvsage.png", path="./images/Part 3/")
@@ -694,7 +695,8 @@ ggplot(model7.health.pred, aes(age, dfage2, color = as.factor(hosp_cat))) +
   geom_point(data = model7.health.pred[I.highDcook, ], size = 3, 
              color = "black", shape = 24) +
   facet_grid(rows = vars(sex_cat), cols = vars(health_new)) +
-  labs(title = "DFBETA age^2 vs age, by sex and health status") +
+  labs(title = "DFBETA age^2 vs age, by sex and health status",
+       color="Hospital days") +
   theme(text = element_text(size = 14)) 
   
 if(SAVE.IMAGES) ggsave(filename="dfbetasvsagesq.png", path="./images/Part 3/")
@@ -707,7 +709,8 @@ ggplot(model7.health.pred, aes(age, dfnongoodhealth, color = as.factor(hosp_cat)
   geom_point(data = model7.health.pred[I.highDcook, ], size = 3, 
              color = "black", shape = 24) +
   facet_grid(rows = vars(sex_cat), cols = vars(health_new)) +
-  labs(title = "DFBETA non-good health vs age, by sex and health status") +
+  labs(title = "DFBETA non-good health vs age, by sex and health status",
+       color="Hospital days") +
   theme(text = element_text(size = 14)) 
   
 if(SAVE.IMAGES) ggsave(filename="dfbetasvsnongood.png", path="./images/Part 3/")
@@ -720,7 +723,8 @@ ggplot(model7.health.pred, aes(age, dfmale, color = as.factor(hosp_cat))) +
   geom_point(data = model7.health.pred[I.highDcook, ], size = 3, 
                color = "black", shape = 24) +
     facet_grid(rows = vars(sex_cat), cols = vars(health_new)) +
-    labs(title = "DFBETA male vs age, by sex and health status") +
+    labs(title = "DFBETA male vs age, by sex and health status",
+         color="Hospital days") +
     theme(text = element_text(size = 14))
   
 if(SAVE.IMAGES) ggsave(filename="dfbetasvssex.png", path="./images/Part 3/")
